@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react"
 import { Slider } from "@/components/ui/slider"
-import { AnimatedCounter } from "@/components/animated-counter"
 import {
   BarChart,
   Bar,
@@ -15,6 +14,7 @@ import {
   RadialBar,
 } from "recharts"
 import { FlaskConical, Play, RotateCcw } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 
 const regions = ["Maharashtra", "Delhi NCR", "Karnataka", "Tamil Nadu", "Gujarat", "Uttar Pradesh"]
 
@@ -72,14 +72,23 @@ export default function SimulationPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <h1 className="text-2xl font-bold text-foreground">Digital Twin Simulation</h1>
         <p className="text-sm text-muted-foreground">Test pricing, marketing, and inventory strategies risk-free</p>
-      </div>
+      </motion.div>
 
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Input Controls */}
-        <div className="lg:col-span-2 space-y-4">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="lg:col-span-2 space-y-4"
+        >
           <div className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm">
             <h3 className="mb-6 text-sm font-semibold text-foreground">Simulation Parameters</h3>
 
@@ -89,14 +98,7 @@ export default function SimulationPage() {
                   <label className="text-xs font-medium text-muted-foreground">Price Change</label>
                   <span className="font-mono text-xs text-foreground">{priceChange[0] > 0 ? "+" : ""}{priceChange[0]}%</span>
                 </div>
-                <Slider
-                  value={priceChange}
-                  onValueChange={setPriceChange}
-                  min={-30}
-                  max={30}
-                  step={1}
-                  className="w-full"
-                />
+                <Slider value={priceChange} onValueChange={setPriceChange} min={-30} max={30} step={1} className="w-full" />
               </div>
 
               <div>
@@ -104,14 +106,7 @@ export default function SimulationPage() {
                   <label className="text-xs font-medium text-muted-foreground">Marketing Budget</label>
                   <span className="font-mono text-xs text-foreground">${marketingBudget[0]}K</span>
                 </div>
-                <Slider
-                  value={marketingBudget}
-                  onValueChange={setMarketingBudget}
-                  min={0}
-                  max={200}
-                  step={5}
-                  className="w-full"
-                />
+                <Slider value={marketingBudget} onValueChange={setMarketingBudget} min={0} max={200} step={5} className="w-full" />
               </div>
 
               <div>
@@ -119,14 +114,7 @@ export default function SimulationPage() {
                   <label className="text-xs font-medium text-muted-foreground">Inventory Shift</label>
                   <span className="font-mono text-xs text-foreground">{inventoryShift[0] > 0 ? "+" : ""}{inventoryShift[0]}%</span>
                 </div>
-                <Slider
-                  value={inventoryShift}
-                  onValueChange={setInventoryShift}
-                  min={-50}
-                  max={50}
-                  step={5}
-                  className="w-full"
-                />
+                <Slider value={inventoryShift} onValueChange={setInventoryShift} min={-50} max={50} step={5} className="w-full" />
               </div>
 
               <div>
@@ -134,7 +122,7 @@ export default function SimulationPage() {
                 <select
                   value={selectedRegion}
                   onChange={(e) => setSelectedRegion(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-foreground outline-none focus:border-primary transition-colors"
                 >
                   {regions.map((r) => (
                     <option key={r} value={r}>{r}</option>
@@ -163,42 +151,35 @@ export default function SimulationPage() {
                 <button
                   onClick={reset}
                   className="rounded-xl border border-border bg-secondary/50 px-4 py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  aria-label="Reset simulation"
                 >
                   <RotateCcw className="h-4 w-4" />
                 </button>
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Results */}
-        <div className="lg:col-span-3 space-y-4">
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="lg:col-span-3 space-y-4"
+        >
           {/* Result metric cards */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-2xl border border-border/50 bg-card/40 p-5 backdrop-blur-sm">
-              <p className="text-xs text-muted-foreground">Projected Revenue</p>
-              <p className="mt-2 text-2xl font-bold text-foreground">
-                ${hasResults ? (projectedRevenue / 1000).toFixed(1) : "0"}K
-              </p>
-            </div>
-            <div className="rounded-2xl border border-border/50 bg-card/40 p-5 backdrop-blur-sm">
-              <p className="text-xs text-muted-foreground">Projected Profit</p>
-              <p className="mt-2 text-2xl font-bold text-primary">
-                ${hasResults ? (projectedProfit / 1000).toFixed(1) : "0"}K
-              </p>
-            </div>
-            <div className="rounded-2xl border border-border/50 bg-card/40 p-5 backdrop-blur-sm">
-              <p className="text-xs text-muted-foreground">Risk Variance</p>
-              <p className="mt-2 text-2xl font-bold text-chart-3">
-                {hasResults ? riskVariance.toFixed(1) : "0"}%
-              </p>
-            </div>
-            <div className="rounded-2xl border border-border/50 bg-card/40 p-5 backdrop-blur-sm">
-              <p className="text-xs text-muted-foreground">Confidence</p>
-              <p className="mt-2 text-2xl font-bold text-chart-2">
-                {hasResults ? confidence.toFixed(1) : "0"}%
-              </p>
-            </div>
+            {[
+              { label: "Projected Revenue", value: `$${hasResults ? (projectedRevenue / 1000).toFixed(1) : "0"}K`, color: "text-foreground" },
+              { label: "Projected Profit", value: `$${hasResults ? (projectedProfit / 1000).toFixed(1) : "0"}K`, color: "text-primary" },
+              { label: "Risk Variance", value: `${hasResults ? riskVariance.toFixed(1) : "0"}%`, color: "text-chart-3" },
+              { label: "Confidence", value: `${hasResults ? confidence.toFixed(1) : "0"}%`, color: "text-chart-2" },
+            ].map((metric) => (
+              <div key={metric.label} className="rounded-2xl border border-border/50 bg-card/40 p-5 backdrop-blur-sm">
+                <p className="text-xs text-muted-foreground">{metric.label}</p>
+                <p className={`mt-2 text-2xl font-bold tabular-nums ${metric.color}`}>{metric.value}</p>
+              </div>
+            ))}
           </div>
 
           {/* Scenario Chart */}
@@ -226,40 +207,48 @@ export default function SimulationPage() {
           </div>
 
           {/* Confidence gauge */}
-          {hasResults && (
-            <div className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm">
-              <h3 className="mb-2 text-sm font-semibold text-foreground">Simulation Confidence Gauge</h3>
-              <div className="flex items-center gap-6">
-                <ResponsiveContainer width={140} height={140}>
-                  <RadialBarChart
-                    cx="50%"
-                    cy="50%"
-                    innerRadius="70%"
-                    outerRadius="100%"
-                    barSize={10}
-                    data={confidenceData}
-                    startAngle={180}
-                    endAngle={0}
-                  >
-                    <RadialBar
-                      dataKey="value"
-                      cornerRadius={5}
-                      background={{ fill: "hsl(220 14% 14%)" }}
-                    />
-                  </RadialBarChart>
-                </ResponsiveContainer>
-                <div>
-                  <p className="text-3xl font-bold text-foreground">{confidence.toFixed(1)}%</p>
-                  <p className="text-xs text-muted-foreground">
-                    {confidence >= 85 ? "High confidence - safe to execute" :
-                     confidence >= 70 ? "Moderate confidence - review before executing" :
-                     "Low confidence - adjust parameters"}
-                  </p>
+          <AnimatePresence>
+            {hasResults && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.4 }}
+                className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm"
+              >
+                <h3 className="mb-2 text-sm font-semibold text-foreground">Simulation Confidence Gauge</h3>
+                <div className="flex items-center gap-6">
+                  <ResponsiveContainer width={140} height={140}>
+                    <RadialBarChart
+                      cx="50%"
+                      cy="50%"
+                      innerRadius="70%"
+                      outerRadius="100%"
+                      barSize={10}
+                      data={confidenceData}
+                      startAngle={180}
+                      endAngle={0}
+                    >
+                      <RadialBar
+                        dataKey="value"
+                        cornerRadius={5}
+                        background={{ fill: "hsl(220 14% 14%)" }}
+                      />
+                    </RadialBarChart>
+                  </ResponsiveContainer>
+                  <div>
+                    <p className="text-3xl font-bold tabular-nums text-foreground">{confidence.toFixed(1)}%</p>
+                    <p className="text-xs text-muted-foreground">
+                      {confidence >= 85 ? "High confidence - safe to execute" :
+                       confidence >= 70 ? "Moderate confidence - review before executing" :
+                       "Low confidence - adjust parameters"}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
-        </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
     </div>
   )

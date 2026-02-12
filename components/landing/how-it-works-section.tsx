@@ -1,6 +1,7 @@
 "use client"
 
 import { Upload, FlaskConical, Zap, FileCheck2 } from "lucide-react"
+import { motion } from "framer-motion"
 
 const steps = [
   {
@@ -29,26 +30,50 @@ const steps = [
   },
 ]
 
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.15 } },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+}
+
 export function HowItWorksSection() {
   return (
     <section className="relative py-32 px-6">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-16 text-center">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_50%_at_20%_80%,hsl(200_70%_50%_/_0.04),transparent)]" />
+
+      <div className="relative mx-auto max-w-6xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+          className="mb-16 text-center"
+        >
           <p className="text-sm font-semibold uppercase tracking-widest text-primary">Process</p>
           <h2 className="mt-3 text-4xl font-bold text-foreground md:text-5xl text-balance">
             How it works
           </h2>
-        </div>
+        </motion.div>
 
-        <div className="relative grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          {steps.map((step, i) => (
-            <div key={step.step} className="group relative">
-              {i < steps.length - 1 && (
-                <div className="absolute right-0 top-12 hidden h-px w-8 bg-border/50 lg:block translate-x-full" />
-              )}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
+          className="relative grid gap-8 md:grid-cols-2 lg:grid-cols-4"
+        >
+          {/* Connecting line */}
+          <div className="absolute top-12 left-[12.5%] right-[12.5%] hidden h-px bg-gradient-to-r from-transparent via-border/50 to-transparent lg:block" />
+
+          {steps.map((step) => (
+            <motion.div key={step.step} variants={itemVariants} className="group relative">
               <div className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm transition-all hover:border-primary/20 hover:bg-card/60">
                 <div className="mb-6 flex items-center justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 transition-colors group-hover:bg-primary/20">
                     <step.icon className="h-6 w-6 text-primary" />
                   </div>
                   <span className="font-mono text-3xl font-bold text-border/60">{step.step}</span>
@@ -56,9 +81,9 @@ export function HowItWorksSection() {
                 <h3 className="text-lg font-semibold text-foreground">{step.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.description}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   )

@@ -19,20 +19,32 @@ export function IndiaHeatmap() {
   const hovered = indiaRegions.find((r) => r.id === hoveredRegion)
 
   return (
-    <div className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm">
+    <div className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm h-full">
       <h3 className="mb-1 text-sm font-semibold text-foreground">Regional Demand DNA</h3>
       <p className="mb-4 text-xs text-muted-foreground">India demand heatmap by state</p>
 
-      <div className="relative mx-auto" style={{ width: 400, height: 520 }}>
+      <div className="relative mx-auto" style={{ maxWidth: 360, aspectRatio: "360/460" }}>
         {/* Simplified India outline */}
-        <svg viewBox="0 0 400 560" className="absolute inset-0 h-full w-full">
+        <svg viewBox="0 0 400 520" className="absolute inset-0 h-full w-full">
           <path
-            d="M200 30 L260 60 L290 100 L320 130 L340 170 L350 220 L340 270 L330 300 L320 340 L300 380 L280 410 L260 440 L240 470 L220 500 L200 530 L180 510 L170 480 L155 450 L140 420 L120 380 L100 340 L90 300 L80 260 L85 220 L100 180 L120 140 L150 100 L170 70 Z"
+            d="M190 20 L220 25 L250 35 L270 55 L290 70 L310 95 L330 120 L345 150 L355 185 L360 220 L355 255 L345 290 L330 320 L315 350 L295 380 L275 405 L255 430 L240 455 L225 475 L210 490 L200 500 L190 490 L180 475 L170 455 L158 430 L145 400 L130 370 L115 340 L100 305 L90 270 L82 235 L80 200 L85 165 L95 135 L110 108 L130 82 L150 58 L170 38 Z"
             fill="none"
-            stroke="hsl(220 14% 20%)"
+            stroke="hsl(220 14% 18%)"
             strokeWidth="1.5"
-            opacity={0.5}
+            opacity={0.6}
           />
+          {/* Subtle inner glow */}
+          <path
+            d="M190 20 L220 25 L250 35 L270 55 L290 70 L310 95 L330 120 L345 150 L355 185 L360 220 L355 255 L345 290 L330 320 L315 350 L295 380 L275 405 L255 430 L240 455 L225 475 L210 490 L200 500 L190 490 L180 475 L170 455 L158 430 L145 400 L130 370 L115 340 L100 305 L90 270 L82 235 L80 200 L85 165 L95 135 L110 108 L130 82 L150 58 L170 38 Z"
+            fill="url(#indiaGlow)"
+            opacity={0.15}
+          />
+          <defs>
+            <radialGradient id="indiaGlow" cx="50%" cy="40%" r="50%">
+              <stop offset="0%" stopColor="hsl(165 80% 48%)" />
+              <stop offset="100%" stopColor="transparent" />
+            </radialGradient>
+          </defs>
         </svg>
 
         {/* Region dots */}
@@ -41,8 +53,8 @@ export function IndiaHeatmap() {
             key={region.id}
             className="absolute cursor-pointer transition-all duration-300"
             style={{
-              left: region.x,
-              top: region.y,
+              left: `${region.x}%`,
+              top: `${region.y}%`,
               transform: "translate(-50%, -50%)",
             }}
             onMouseEnter={() => setHoveredRegion(region.id)}
@@ -51,18 +63,18 @@ export function IndiaHeatmap() {
             <div
               className="rounded-full transition-all duration-300"
               style={{
-                width: hoveredRegion === region.id ? region.size * 1.3 : region.size,
-                height: hoveredRegion === region.id ? region.size * 1.3 : region.size,
+                width: hoveredRegion === region.id ? region.size * 1.4 : region.size,
+                height: hoveredRegion === region.id ? region.size * 1.4 : region.size,
                 backgroundColor: getDemandColor(region.demand),
                 opacity: getDemandOpacity(region.demand),
                 boxShadow: hoveredRegion === region.id
-                  ? `0 0 20px ${getDemandColor(region.demand)}60`
-                  : "none",
+                  ? `0 0 24px ${getDemandColor(region.demand)}60`
+                  : `0 0 8px ${getDemandColor(region.demand)}20`,
               }}
             />
             {hoveredRegion === region.id && (
-              <div className="absolute -top-1 left-1/2 -translate-x-1/2 -translate-y-full">
-                <span className="whitespace-nowrap rounded bg-card border border-border px-2 py-0.5 text-[10px] font-medium text-foreground shadow-lg">
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2 -translate-y-full z-10">
+                <span className="whitespace-nowrap rounded-md bg-card border border-border px-2 py-0.5 text-[10px] font-medium text-foreground shadow-lg">
                   {region.name}
                 </span>
               </div>
@@ -72,31 +84,29 @@ export function IndiaHeatmap() {
       </div>
 
       {/* Tooltip panel */}
-      {hovered && (
-        <div className="mt-4 rounded-xl border border-border/50 bg-secondary/40 p-4">
-          <p className="text-sm font-semibold text-foreground">{hovered.name}</p>
-          <div className="mt-2 grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Demand Index</p>
-              <p className="text-lg font-bold text-primary">{hovered.demand}</p>
+      <div className="mt-4 rounded-xl border border-border/50 bg-secondary/40 p-4 transition-all">
+        {hovered ? (
+          <>
+            <p className="text-sm font-semibold text-foreground">{hovered.name}</p>
+            <div className="mt-2 grid grid-cols-3 gap-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Demand</p>
+                <p className="text-lg font-bold text-primary">{hovered.demand}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Risk</p>
+                <p className="text-lg font-bold text-chart-3">{hovered.risk}%</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Category</p>
+                <p className="text-sm font-medium text-foreground">{hovered.category}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Risk Score</p>
-              <p className="text-lg font-bold text-chart-3">{hovered.risk}%</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Category</p>
-              <p className="text-sm font-medium text-foreground">{hovered.category}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {!hovered && (
-        <div className="mt-4 rounded-xl border border-border/50 bg-secondary/40 p-4">
+          </>
+        ) : (
           <p className="text-xs text-muted-foreground text-center">Hover over a region to see demand details</p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

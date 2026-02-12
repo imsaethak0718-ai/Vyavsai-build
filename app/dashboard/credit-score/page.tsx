@@ -17,6 +17,7 @@ import {
   Area,
 } from "recharts"
 import { Shield, CheckCircle2, TrendingUp, Loader2, ExternalLink } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 
 function getCategoryColor(score: number) {
   if (score >= 800) return "text-primary"
@@ -68,7 +69,12 @@ export default function CreditScorePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
         <div>
           <h1 className="text-2xl font-bold text-foreground">AI Commerce Credit Score</h1>
           <p className="text-sm text-muted-foreground">Blockchain-verified commerce creditworthiness rating</p>
@@ -76,7 +82,7 @@ export default function CreditScorePage() {
         <button
           onClick={handleVerifyOnChain}
           disabled={isVerifying || verified}
-          className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50 w-fit"
         >
           {isVerifying ? (
             <>
@@ -95,11 +101,16 @@ export default function CreditScorePage() {
             </>
           )}
         </button>
-      </div>
+      </motion.div>
 
       {/* Score Hero */}
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-2xl border border-border/50 bg-card/40 p-8 backdrop-blur-sm lg:col-span-1">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="rounded-2xl border border-border/50 bg-card/40 p-8 backdrop-blur-sm lg:col-span-1"
+        >
           <div className="flex flex-col items-center text-center">
             <div className="relative mb-4">
               <ResponsiveContainer width={200} height={200}>
@@ -121,7 +132,7 @@ export default function CreditScorePage() {
                 </RadialBarChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={`text-4xl font-bold ${getCategoryColor(score)}`}>
+                <span className={`text-4xl font-bold tabular-nums ${getCategoryColor(score)}`}>
                   <AnimatedCounter end={score} />
                 </span>
                 <span className="text-xs text-muted-foreground">/ {maxScore}</span>
@@ -138,17 +149,24 @@ export default function CreditScorePage() {
                 <span className="text-sm font-bold text-foreground">{fulfillmentReliability}%</span>
               </div>
               <div className="h-1.5 w-full rounded-full bg-secondary">
-                <div
-                  className="h-full rounded-full bg-primary transition-all"
-                  style={{ width: `${fulfillmentReliability}%` }}
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${fulfillmentReliability}%` }}
+                  transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+                  className="h-full rounded-full bg-primary"
                 />
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Revenue Growth Trend */}
-        <div className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm lg:col-span-2">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm lg:col-span-2"
+        >
           <div className="mb-4 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-primary" />
             <h3 className="text-sm font-semibold text-foreground">Revenue Growth Trend</h3>
@@ -175,11 +193,16 @@ export default function CreditScorePage() {
               />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
+        </motion.div>
       </div>
 
       {/* Score Factors */}
-      <div className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm"
+      >
         <h3 className="mb-4 text-sm font-semibold text-foreground">Score Breakdown by Factor</h3>
         <ResponsiveContainer width="100%" height={240}>
           <BarChart data={factors} layout="vertical">
@@ -208,37 +231,50 @@ export default function CreditScorePage() {
             <Bar dataKey="score" fill="hsl(165 80% 48%)" radius={[0, 6, 6, 0]} barSize={18} />
           </BarChart>
         </ResponsiveContainer>
-      </div>
+      </motion.div>
 
       {/* Verification Result */}
-      {verified && verifyHash && (
-        <div className="rounded-2xl border border-primary/30 bg-primary/5 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20">
-              <CheckCircle2 className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground">On-Chain Verification Successful</p>
-              <p className="text-xs text-muted-foreground">Credit score hash matches the on-chain record</p>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-border/50 bg-secondary/30 p-4">
-            <p className="text-xs text-muted-foreground mb-1">Verification Hash</p>
-            <p className="font-mono text-xs text-foreground break-all">{verifyHash}</p>
-          </div>
-
-          <a
-            href={`https://polygonscan.com/tx/${verifyHash}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-border bg-secondary/50 px-4 py-2 text-xs font-medium text-foreground transition-colors hover:bg-secondary"
+      <AnimatePresence>
+        {verified && verifyHash && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.5, type: "spring", stiffness: 200 }}
+            className="rounded-2xl border border-primary/30 bg-primary/5 p-6"
           >
-            View on Polygon Explorer
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        </div>
-      )}
+            <div className="flex items-center gap-3 mb-4">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20"
+              >
+                <CheckCircle2 className="h-5 w-5 text-primary" />
+              </motion.div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">On-Chain Verification Successful</p>
+                <p className="text-xs text-muted-foreground">Credit score hash matches the on-chain record</p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border/50 bg-secondary/30 p-4">
+              <p className="text-xs text-muted-foreground mb-1">Verification Hash</p>
+              <p className="font-mono text-xs text-foreground break-all">{verifyHash}</p>
+            </div>
+
+            <a
+              href={`https://polygonscan.com/tx/${verifyHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-border bg-secondary/50 px-4 py-2 text-xs font-medium text-foreground transition-colors hover:bg-secondary"
+            >
+              View on Polygon Explorer
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

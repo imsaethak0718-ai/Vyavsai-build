@@ -6,6 +6,7 @@ import { FeaturesSection } from "@/components/landing/features-section"
 import { HowItWorksSection } from "@/components/landing/how-it-works-section"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { motion } from "framer-motion"
 
 export default function LandingPage() {
   return (
@@ -20,8 +21,15 @@ export default function LandingPage() {
       </div>
 
       {/* CTA Section */}
-      <section className="relative py-32 px-6">
-        <div className="mx-auto max-w-3xl text-center">
+      <section className="relative py-32 px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,hsl(165_80%_48%_/_0.06),transparent)]" />
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.7 }}
+          className="relative mx-auto max-w-3xl text-center"
+        >
           <h2 className="text-4xl font-bold text-foreground md:text-5xl text-balance">
             Ready to automate your commerce?
           </h2>
@@ -35,7 +43,7 @@ export default function LandingPage() {
             Launch Dashboard
             <ArrowRight className="h-4 w-4" />
           </Link>
-        </div>
+        </motion.div>
       </section>
 
       {/* Footer */}
