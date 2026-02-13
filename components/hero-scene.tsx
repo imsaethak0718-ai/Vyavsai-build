@@ -1,290 +1,288 @@
 "use client"
 
-import { Canvas, useFrame, extend } from "@react-three/fiber"
-import { useRef, Suspense, useMemo } from "react"
-import type { Mesh, Group, Points, ShaderMaterial } from "three"
-import * as THREE from "three"
+import { useEffect, useRef } from "react"
 
-/* ── Gradient Sphere with custom shader ── */
-const gradientVertexShader = `
-  varying vec3 vNormal;
-  varying vec3 vPosition;
-  varying vec2 vUv;
-  uniform float uTime;
-  void main() {
-    vNormal = normalize(normalMatrix * normal);
-    vPosition = position;
-    vUv = uv;
-    // Subtle vertex displacement for organic feel
-    vec3 pos = position;
-    float displacement = sin(pos.x * 3.0 + uTime) * sin(pos.y * 3.0 + uTime * 0.7) * sin(pos.z * 3.0 + uTime * 0.5) * 0.06;
-    pos += normal * displacement;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-  }
-`
+/* ── Canvas-based 3D-looking gradient sphere with orbits and conveyor boxes ── */
 
-const gradientFragmentShader = `
-  varying vec3 vNormal;
-  varying vec3 vPosition;
-  varying vec2 vUv;
-  uniform float uTime;
-  void main() {
-    // Vibrant violet-to-pink-to-indigo gradient based on normals + position
-    vec3 violet = vec3(0.75, 0.52, 0.99);   // #bf84fd
-    vec3 pink = vec3(0.96, 0.47, 0.73);     // #f578ba
-    vec3 indigo = vec3(0.51, 0.40, 0.98);   // #8266fa
-    vec3 cyan = vec3(0.40, 0.84, 0.98);     // #66d6fa
-
-    float t1 = vNormal.y * 0.5 + 0.5;
-    float t2 = sin(vPosition.x * 2.0 + uTime * 0.5) * 0.5 + 0.5;
-    float t3 = cos(vPosition.z * 2.0 + uTime * 0.3) * 0.5 + 0.5;
-
-    vec3 color = mix(violet, pink, t1);
-    color = mix(color, indigo, t2 * 0.5);
-    color = mix(color, cyan, t3 * 0.25);
-
-    // Fresnel glow at edges
-    float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0))), 2.5);
-    color += vec3(0.6, 0.3, 0.9) * fresnel * 0.8;
-
-    // Pulsing brightness
-    float pulse = 0.85 + sin(uTime * 0.8) * 0.15;
-    color *= pulse;
-
-    gl_FragColor = vec4(color, 0.92);
-  }
-`
-
-function GradientSphere() {
-  const meshRef = useRef<Mesh>(null)
-  const matRef = useRef<ShaderMaterial>(null)
-
-  useFrame((state) => {
-    if (!meshRef.current || !matRef.current) return
-    meshRef.current.rotation.y = state.clock.elapsedTime * 0.12
-    meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.08) * 0.1
-    matRef.current.uniforms.uTime.value = state.clock.elapsedTime
-  })
-
-  return (
-    <mesh ref={meshRef}>
-      <sphereGeometry args={[1.5, 64, 64]} />
-      <shaderMaterial
-        ref={matRef}
-        vertexShader={gradientVertexShader}
-        fragmentShader={gradientFragmentShader}
-        uniforms={{ uTime: { value: 0 } }}
-        transparent
-      />
-    </mesh>
-  )
+interface Particle {
+  angle: number
+  radius: number
+  speed: number
+  tiltX: number
+  tiltZ: number
+  size: number
+  hue: number
 }
 
-/* ── Inner glow core ── */
-function InnerCore() {
-  const meshRef = useRef<Mesh>(null)
-
-  useFrame((state) => {
-    if (!meshRef.current) return
-    const s = 1 + Math.sin(state.clock.elapsedTime * 1.2) * 0.08
-    meshRef.current.scale.setScalar(s)
-  })
-
-  return (
-    <mesh ref={meshRef}>
-      <sphereGeometry args={[0.6, 32, 32]} />
-      <meshStandardMaterial
-        color="#e879f9"
-        emissive="#e879f9"
-        emissiveIntensity={4}
-        transparent
-        opacity={0.35}
-      />
-    </mesh>
-  )
-}
-
-/* ── Orbital rings ── */
-function OrbitalRing({ radius, tiltX, tiltZ, speed, color, thickness }: {
-  radius: number; tiltX: number; tiltZ: number; speed: number; color: string; thickness: number
-}) {
-  const meshRef = useRef<Mesh>(null)
-
-  useFrame((state) => {
-    if (!meshRef.current) return
-    meshRef.current.rotation.z = state.clock.elapsedTime * speed
-  })
-
-  return (
-    <mesh ref={meshRef} rotation={[tiltX, 0, tiltZ]}>
-      <torusGeometry args={[radius, thickness, 16, 120]} />
-      <meshStandardMaterial
-        color={color}
-        emissive={color}
-        emissiveIntensity={2.5}
-        transparent
-        opacity={0.7}
-      />
-    </mesh>
-  )
-}
-
-function Orbits() {
-  return (
-    <group>
-      <OrbitalRing radius={2.2} tiltX={1.2} tiltZ={0.3} speed={0.18} color="#c084fc" thickness={0.012} />
-      <OrbitalRing radius={2.6} tiltX={0.5} tiltZ={-0.8} speed={-0.12} color="#f472b6" thickness={0.01} />
-      <OrbitalRing radius={3.0} tiltX={-0.3} tiltZ={1.5} speed={0.08} color="#818cf8" thickness={0.008} />
-      <OrbitalRing radius={3.4} tiltX={0.9} tiltZ={-0.4} speed={-0.15} color="#e879f9" thickness={0.009} />
-      <OrbitalRing radius={1.9} tiltX={-0.8} tiltZ={0.6} speed={0.22} color="#f9a8d4" thickness={0.011} />
-    </group>
-  )
-}
-
-/* ── Orbiting particles along rings ── */
-function OrbitParticles() {
-  const groupRef = useRef<Group>(null)
-
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 20 }, (_, i) => ({
-        radius: 2.0 + (i % 5) * 0.4,
-        speed: 0.15 + (i % 3) * 0.1,
-        offset: (i / 20) * Math.PI * 2,
-        tiltX: [1.2, 0.5, -0.3, 0.9, -0.8][i % 5],
-        tiltZ: [0.3, -0.8, 1.5, -0.4, 0.6][i % 5],
-        size: 0.035 + (i % 4) * 0.012,
-        color: ["#c084fc", "#f472b6", "#818cf8", "#e879f9", "#f9a8d4"][i % 5],
-      })),
-    []
-  )
-
-  useFrame((state) => {
-    if (!groupRef.current) return
-    const t = state.clock.elapsedTime
-    groupRef.current.children.forEach((child, i) => {
-      const p = particles[i]
-      if (!p) return
-      const angle = t * p.speed * (i % 2 === 0 ? 1 : -1) + p.offset
-      // Rotate the point by tilt angles
-      const x = Math.cos(angle) * p.radius
-      const y = Math.sin(angle) * p.radius * Math.sin(p.tiltX)
-      const z = Math.sin(angle) * p.radius * Math.cos(p.tiltX)
-      child.position.set(x, y, z)
-    })
-  })
-
-  return (
-    <group ref={groupRef}>
-      {particles.map((p, i) => (
-        <mesh key={i}>
-          <sphereGeometry args={[p.size, 10, 10]} />
-          <meshStandardMaterial
-            color={p.color}
-            emissive={p.color}
-            emissiveIntensity={5}
-          />
-        </mesh>
-      ))}
-    </group>
-  )
-}
-
-/* ── Star field background ── */
-function StarField() {
-  const pointsRef = useRef<Points>(null)
-
-  const positions = useMemo(() => {
-    const count = 500
-    const pos = new Float32Array(count * 3)
-    for (let i = 0; i < count; i++) {
-      const theta = Math.random() * Math.PI * 2
-      const phi = Math.acos(2 * Math.random() - 1)
-      const r = 4 + Math.random() * 6
-      pos[i * 3] = r * Math.sin(phi) * Math.cos(theta)
-      pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
-      pos[i * 3 + 2] = r * Math.cos(phi)
-    }
-    return pos
-  }, [])
-
-  useFrame((state) => {
-    if (pointsRef.current) pointsRef.current.rotation.y = state.clock.elapsedTime * 0.015
-  })
-
-  return (
-    <points ref={pointsRef}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-      </bufferGeometry>
-      <pointsMaterial color="#d8b4fe" size={0.03} transparent opacity={0.8} sizeAttenuation depthWrite={false} />
-    </points>
-  )
-}
-
-/* ── Energy pulses radiating from sphere ── */
-function EnergyPulses() {
-  const rings = useRef<(Mesh | null)[]>([])
-
-  useFrame((state) => {
-    const t = state.clock.elapsedTime
-    rings.current.forEach((ring, i) => {
-      if (!ring) return
-      const phase = (t * 0.4 + i * 1.2) % 3
-      const scale = 1.5 + phase * 1.2
-      ring.scale.setScalar(scale)
-      const mat = ring.material as THREE.MeshStandardMaterial
-      mat.opacity = Math.max(0, 0.5 - phase * 0.17)
-    })
-  })
-
-  return (
-    <group>
-      {[0, 1, 2].map((i) => (
-        <mesh
-          key={i}
-          ref={(el) => { rings.current[i] = el }}
-          rotation={[Math.PI / 2, 0, 0]}
-        >
-          <torusGeometry args={[1, 0.008, 8, 80]} />
-          <meshStandardMaterial
-            color="#e879f9"
-            emissive="#e879f9"
-            emissiveIntensity={3}
-            transparent
-            opacity={0.5}
-          />
-        </mesh>
-      ))}
-    </group>
-  )
+interface Box {
+  x: number
+  y: number
+  speed: number
+  size: number
+  hue: number
+  opacity: number
+  lane: number
 }
 
 export function HeroScene() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    let animationId: number
+    let width = 0
+    let height = 0
+
+    function resize() {
+      width = canvas!.parentElement?.clientWidth || window.innerWidth
+      height = canvas!.parentElement?.clientHeight || window.innerHeight
+      canvas!.width = width * window.devicePixelRatio
+      canvas!.height = height * window.devicePixelRatio
+      canvas!.style.width = `${width}px`
+      canvas!.style.height = `${height}px`
+      ctx!.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0)
+    }
+
+    resize()
+    window.addEventListener("resize", resize)
+
+    // Stars
+    const stars = Array.from({ length: 200 }, () => ({
+      x: Math.random(),
+      y: Math.random(),
+      size: Math.random() * 1.5 + 0.3,
+      alpha: Math.random() * 0.6 + 0.2,
+      twinkleSpeed: Math.random() * 2 + 1,
+    }))
+
+    // Orbit particles
+    const orbitParticles: Particle[] = Array.from({ length: 30 }, (_, i) => ({
+      angle: (i / 30) * Math.PI * 2,
+      radius: 120 + (i % 4) * 35,
+      speed: 0.003 + (i % 3) * 0.002,
+      tiltX: [0.6, -0.4, 0.8, -0.6][i % 4],
+      tiltZ: [0.3, -0.5, 0.2, -0.3][i % 4],
+      size: 2 + (i % 3),
+      hue: [270, 320, 250, 290][i % 4],
+    }))
+
+    // Conveyor boxes
+    const boxes: Box[] = Array.from({ length: 14 }, (_, i) => ({
+      x: Math.random() * 2 - 0.5,
+      y: 0,
+      speed: 0.3 + Math.random() * 0.4,
+      size: 10 + Math.random() * 8,
+      hue: [270, 310, 250, 280, 300][i % 5],
+      opacity: 0.5 + Math.random() * 0.35,
+      lane: i % 3,
+    }))
+
+    function drawSphere(t: number, cx: number, cy: number, r: number) {
+      // Outer glow
+      const outerGlow = ctx!.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 1.6)
+      outerGlow.addColorStop(0, "hsla(270, 60%, 55%, 0.08)")
+      outerGlow.addColorStop(0.5, "hsla(290, 50%, 45%, 0.04)")
+      outerGlow.addColorStop(1, "transparent")
+      ctx!.fillStyle = outerGlow
+      ctx!.fillRect(cx - r * 2, cy - r * 2, r * 4, r * 4)
+
+      // Main sphere gradient -- vibrant but not blinding
+      const grad = ctx!.createRadialGradient(
+        cx - r * 0.25, cy - r * 0.3, r * 0.05,
+        cx, cy, r
+      )
+      const hueShift = Math.sin(t * 0.4) * 15
+      grad.addColorStop(0, `hsla(${290 + hueShift}, 75%, 72%, 0.95)`)
+      grad.addColorStop(0.3, `hsla(${270 + hueShift}, 70%, 58%, 0.9)`)
+      grad.addColorStop(0.6, `hsla(${310 + hueShift}, 60%, 50%, 0.85)`)
+      grad.addColorStop(0.85, `hsla(${250 + hueShift}, 65%, 40%, 0.8)`)
+      grad.addColorStop(1, `hsla(${240 + hueShift}, 55%, 25%, 0.6)`)
+
+      ctx!.beginPath()
+      ctx!.arc(cx, cy, r, 0, Math.PI * 2)
+      ctx!.fillStyle = grad
+      ctx!.fill()
+
+      // Specular highlight
+      const specular = ctx!.createRadialGradient(
+        cx - r * 0.3, cy - r * 0.35, 0,
+        cx - r * 0.3, cy - r * 0.35, r * 0.5
+      )
+      specular.addColorStop(0, "hsla(300, 80%, 90%, 0.35)")
+      specular.addColorStop(0.5, "hsla(280, 60%, 80%, 0.1)")
+      specular.addColorStop(1, "transparent")
+      ctx!.beginPath()
+      ctx!.arc(cx, cy, r, 0, Math.PI * 2)
+      ctx!.fillStyle = specular
+      ctx!.fill()
+
+      // Subtle surface shimmer
+      for (let i = 0; i < 5; i++) {
+        const shimAngle = t * 0.3 + i * 1.25
+        const shimX = cx + Math.cos(shimAngle) * r * 0.5
+        const shimY = cy + Math.sin(shimAngle) * r * 0.4
+        const shimGrad = ctx!.createRadialGradient(shimX, shimY, 0, shimX, shimY, r * 0.25)
+        shimGrad.addColorStop(0, `hsla(${300 + i * 20}, 70%, 70%, 0.12)`)
+        shimGrad.addColorStop(1, "transparent")
+        ctx!.fillStyle = shimGrad
+        ctx!.fillRect(cx - r, cy - r, r * 2, r * 2)
+      }
+    }
+
+    function drawOrbit(t: number, cx: number, cy: number, radius: number, tilt: number, speed: number, hue: number) {
+      ctx!.save()
+      ctx!.translate(cx, cy)
+
+      const points = 100
+      ctx!.beginPath()
+      for (let i = 0; i <= points; i++) {
+        const a = (i / points) * Math.PI * 2
+        const x = Math.cos(a) * radius
+        const y = Math.sin(a) * radius * Math.cos(tilt) * 0.4
+        if (i === 0) ctx!.moveTo(x, y)
+        else ctx!.lineTo(x, y)
+      }
+      ctx!.strokeStyle = `hsla(${hue}, 60%, 65%, 0.2)`
+      ctx!.lineWidth = 1
+      ctx!.stroke()
+
+      ctx!.restore()
+    }
+
+    function drawOrbitParticle(t: number, cx: number, cy: number, p: Particle) {
+      const angle = p.angle + t * p.speed * 8
+      const x = cx + Math.cos(angle) * p.radius
+      const y = cy + Math.sin(angle) * p.radius * Math.cos(p.tiltX) * 0.4
+
+      const glow = ctx!.createRadialGradient(x, y, 0, x, y, p.size * 4)
+      glow.addColorStop(0, `hsla(${p.hue}, 80%, 70%, 0.7)`)
+      glow.addColorStop(0.5, `hsla(${p.hue}, 70%, 60%, 0.2)`)
+      glow.addColorStop(1, "transparent")
+      ctx!.fillStyle = glow
+      ctx!.fillRect(x - p.size * 4, y - p.size * 4, p.size * 8, p.size * 8)
+
+      ctx!.beginPath()
+      ctx!.arc(x, y, p.size, 0, Math.PI * 2)
+      ctx!.fillStyle = `hsla(${p.hue}, 85%, 75%, 0.9)`
+      ctx!.fill()
+    }
+
+    function drawConveyorBelt(t: number) {
+      const beltY = height * 0.82
+      const laneGap = 28
+
+      // Belt tracks
+      for (let lane = 0; lane < 3; lane++) {
+        const ly = beltY + lane * laneGap
+        ctx!.beginPath()
+        ctx!.moveTo(0, ly)
+        ctx!.lineTo(width, ly)
+        ctx!.strokeStyle = `hsla(270, 40%, 40%, 0.15)`
+        ctx!.lineWidth = 1
+        ctx!.setLineDash([6, 8])
+        ctx!.stroke()
+        ctx!.setLineDash([])
+
+        // Moving dash markers
+        const dashOffset = (t * 40 * (lane % 2 === 0 ? 1 : -1)) % 20
+        for (let dx = dashOffset; dx < width; dx += 60) {
+          ctx!.fillStyle = `hsla(270, 50%, 55%, 0.1)`
+          ctx!.fillRect(dx, ly - 1, 20, 2)
+        }
+      }
+
+      // Boxes
+      boxes.forEach((box) => {
+        const bx = ((box.x + t * box.speed * 0.02) % 1.5) * width - width * 0.15
+        const by = beltY + box.lane * laneGap - box.size / 2
+
+        // Box shadow
+        ctx!.fillStyle = `hsla(${box.hue}, 50%, 20%, 0.3)`
+        ctx!.fillRect(bx + 3, by + 3, box.size, box.size * 0.7)
+
+        // Box face gradient
+        const boxGrad = ctx!.createLinearGradient(bx, by, bx + box.size, by + box.size * 0.7)
+        boxGrad.addColorStop(0, `hsla(${box.hue}, 55%, 55%, ${box.opacity})`)
+        boxGrad.addColorStop(1, `hsla(${box.hue + 20}, 50%, 40%, ${box.opacity * 0.8})`)
+        ctx!.fillStyle = boxGrad
+        ctx!.fillRect(bx, by, box.size, box.size * 0.7)
+
+        // Box highlight edge
+        ctx!.fillStyle = `hsla(${box.hue}, 70%, 75%, ${box.opacity * 0.4})`
+        ctx!.fillRect(bx, by, box.size, 2)
+        ctx!.fillRect(bx, by, 2, box.size * 0.7)
+
+        // Box inner line
+        ctx!.strokeStyle = `hsla(${box.hue}, 60%, 65%, 0.25)`
+        ctx!.lineWidth = 0.5
+        ctx!.strokeRect(bx + 3, by + 3, box.size - 6, box.size * 0.7 - 6)
+      })
+    }
+
+    function draw(t: number) {
+      ctx!.clearRect(0, 0, width, height)
+
+      // Stars
+      stars.forEach((s) => {
+        const twinkle = Math.sin(t * s.twinkleSpeed + s.x * 10) * 0.3 + 0.7
+        ctx!.beginPath()
+        ctx!.arc(s.x * width, s.y * height, s.size, 0, Math.PI * 2)
+        ctx!.fillStyle = `hsla(270, 30%, 80%, ${s.alpha * twinkle})`
+        ctx!.fill()
+      })
+
+      const cx = width * 0.5
+      const cy = height * 0.38
+      const sphereR = Math.min(width, height) * 0.14
+
+      // Orbits behind sphere
+      drawOrbit(t, cx, cy, sphereR * 1.7, 0.6, 0.2, 270)
+      drawOrbit(t, cx, cy, sphereR * 2.1, -0.4, -0.15, 310)
+      drawOrbit(t, cx, cy, sphereR * 2.5, 0.8, 0.1, 250)
+      drawOrbit(t, cx, cy, sphereR * 2.9, -0.6, -0.18, 290)
+
+      // Orbit particles behind sphere (back half)
+      orbitParticles.forEach((p) => {
+        const angle = p.angle + t * p.speed * 8
+        const yFactor = Math.sin(angle) * Math.cos(p.tiltX) * 0.4
+        if (yFactor > 0) drawOrbitParticle(t, cx, cy, p) // behind
+      })
+
+      // Sphere
+      drawSphere(t, cx, cy, sphereR)
+
+      // Orbit particles in front of sphere
+      orbitParticles.forEach((p) => {
+        const angle = p.angle + t * p.speed * 8
+        const yFactor = Math.sin(angle) * Math.cos(p.tiltX) * 0.4
+        if (yFactor <= 0) drawOrbitParticle(t, cx, cy, p) // in front
+      })
+
+      // Conveyor belt with moving boxes
+      drawConveyorBelt(t)
+    }
+
+    function animate() {
+      const t = performance.now() / 1000
+      draw(t)
+      animationId = requestAnimationFrame(animate)
+    }
+
+    animate()
+
+    return () => {
+      cancelAnimationFrame(animationId)
+      window.removeEventListener("resize", resize)
+    }
+  }, [])
+
   return (
     <div className="absolute inset-0 z-0">
-      <Canvas
-        camera={{ position: [0, 0, 7], fov: 40 }}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: "transparent" }}
-        dpr={[1, 1.5]}
-      >
-        <Suspense fallback={null}>
-          <ambientLight intensity={0.5} />
-          <pointLight position={[5, 5, 5]} intensity={2} color="#c084fc" />
-          <pointLight position={[-5, -3, 3]} intensity={1.2} color="#f472b6" />
-          <pointLight position={[0, 4, -5]} intensity={0.8} color="#ffffff" />
-          <pointLight position={[0, -4, 4]} intensity={0.6} color="#818cf8" />
-          <pointLight position={[3, 0, 3]} intensity={0.8} color="#e879f9" />
-
-          <GradientSphere />
-          <InnerCore />
-          <Orbits />
-          <OrbitParticles />
-          <EnergyPulses />
-          <StarField />
-        </Suspense>
-      </Canvas>
+      <canvas ref={canvasRef} className="h-full w-full" />
     </div>
   )
 }

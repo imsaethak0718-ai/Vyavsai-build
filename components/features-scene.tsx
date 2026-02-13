@@ -1,227 +1,162 @@
 "use client"
 
-import { Canvas, useFrame } from "@react-three/fiber"
-import { useRef, Suspense, useMemo } from "react"
-import type { Points, Group, Mesh } from "three"
-import * as THREE from "three"
-
-const VIOLET = "#c084fc"
-const PINK = "#f472b6"
-const INDIGO = "#818cf8"
-const BRIGHT_VIOLET = "#d8b4fe"
-const BRIGHT_PINK = "#f9a8d4"
-
-/* ── Floating 3D bar chart ── */
-function BarChart3D() {
-  const groupRef = useRef<Group>(null)
-
-  const bars = useMemo(
-    () =>
-      Array.from({ length: 7 }, (_, i) => ({
-        height: 0.4 + Math.random() * 1.2,
-        x: (i - 3) * 0.45,
-        color: [VIOLET, BRIGHT_PINK, INDIGO, VIOLET, BRIGHT_PINK, INDIGO, VIOLET][i],
-      })),
-    []
-  )
-
-  useFrame((state) => {
-    if (!groupRef.current) return
-    const t = state.clock.elapsedTime
-    groupRef.current.rotation.y = Math.sin(t * 0.15) * 0.2
-    groupRef.current.children.forEach((child, i) => {
-      const bar = bars[i]
-      if (!bar) return
-      const scaleY = 0.5 + (Math.sin(t * 0.5 + i * 0.6) + 1) * 0.5 * bar.height
-      child.scale.y = scaleY
-      child.position.y = scaleY * 0.5
-    })
-  })
-
-  return (
-    <group ref={groupRef} position={[-4, -0.5, -2]} rotation={[0.2, 0.5, 0]}>
-      {bars.map((bar, i) => (
-        <mesh key={i} position={[bar.x, bar.height * 0.5, 0]}>
-          <boxGeometry args={[0.25, 1, 0.25]} />
-          <meshStandardMaterial
-            color={bar.color}
-            transparent
-            opacity={0.55}
-            emissive={bar.color}
-            emissiveIntensity={1.5}
-          />
-        </mesh>
-      ))}
-      {/* Base line */}
-      <mesh position={[0, 0, 0]}>
-        <boxGeometry args={[3.5, 0.015, 0.3]} />
-        <meshStandardMaterial color={VIOLET} transparent opacity={0.3} emissive={VIOLET} emissiveIntensity={0.8} />
-      </mesh>
-    </group>
-  )
-}
-
-/* ── Floating pie chart ── */
-function PieChart3D() {
-  const groupRef = useRef<Group>(null)
-
-  const segments = useMemo(() => {
-    const data = [
-      { value: 0.35, color: VIOLET },
-      { value: 0.25, color: BRIGHT_PINK },
-      { value: 0.2, color: INDIGO },
-      { value: 0.2, color: BRIGHT_VIOLET },
-    ]
-    let startAngle = 0
-    return data.map((d) => {
-      const angle = d.value * Math.PI * 2
-      const seg = { startAngle, angle, color: d.color }
-      startAngle += angle
-      return seg
-    })
-  }, [])
-
-  useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.z = state.clock.elapsedTime * 0.1
-      groupRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.2) * 0.1
-    }
-  })
-
-  return (
-    <group ref={groupRef} position={[4.5, 1, -2]} rotation={[0.3, 0, 0]}>
-      {segments.map((seg, i) => {
-        const shape = new THREE.Shape()
-        shape.moveTo(0, 0)
-        const steps = 20
-        for (let s = 0; s <= steps; s++) {
-          const a = seg.startAngle + (s / steps) * seg.angle
-          shape.lineTo(Math.cos(a) * 0.8, Math.sin(a) * 0.8)
-        }
-        shape.lineTo(0, 0)
-
-        return (
-          <mesh key={i}>
-            <extrudeGeometry
-              args={[
-                shape,
-                { depth: 0.08, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 2 },
-              ]}
-            />
-            <meshStandardMaterial
-              color={seg.color}
-              transparent
-              opacity={0.45}
-              emissive={seg.color}
-              emissiveIntensity={1.2}
-            />
-          </mesh>
-        )
-      })}
-    </group>
-  )
-}
-
-/* ── Floating supply chain nodes ── */
-function SupplyChainFlow() {
-  const groupRef = useRef<Group>(null)
-
-  const nodes = useMemo(
-    () => [
-      { x: -2, y: 2, color: BRIGHT_PINK },
-      { x: -0.5, y: 2.4, color: BRIGHT_VIOLET },
-      { x: 1, y: 1.8, color: INDIGO },
-      { x: 2.5, y: 2.2, color: BRIGHT_PINK },
-    ],
-    []
-  )
-
-  const linePositions = useMemo(() => {
-    const verts: number[] = []
-    for (let i = 0; i < nodes.length - 1; i++) {
-      verts.push(nodes[i].x, nodes[i].y, -1)
-      verts.push(nodes[i + 1].x, nodes[i + 1].y, -1)
-    }
-    return new Float32Array(verts)
-  }, [nodes])
-
-  useFrame((state) => {
-    if (!groupRef.current) return
-    groupRef.current.children.forEach((child, i) => {
-      if (i < nodes.length) {
-        child.position.y = nodes[i].y + Math.sin(state.clock.elapsedTime * 0.6 + i * 0.8) * 0.1
-      }
-    })
-  })
-
-  return (
-    <group ref={groupRef}>
-      {nodes.map((node, i) => (
-        <mesh key={i} position={[node.x, node.y, -1]}>
-          <sphereGeometry args={[0.08, 12, 12]} />
-          <meshStandardMaterial color={node.color} emissive={node.color} emissiveIntensity={4} />
-        </mesh>
-      ))}
-      <lineSegments>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[linePositions, 3]} />
-        </bufferGeometry>
-        <lineBasicMaterial color={BRIGHT_VIOLET} transparent opacity={0.45} />
-      </lineSegments>
-    </group>
-  )
-}
-
-/* ── Ambient particles ── */
-function DriftParticles() {
-  const pointsRef = useRef<Points>(null)
-
-  const positions = useMemo(() => {
-    const count = 150
-    const pos = new Float32Array(count * 3)
-    for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 14
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 8
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 6
-    }
-    return pos
-  }, [])
-
-  useFrame((state) => {
-    if (pointsRef.current) pointsRef.current.rotation.y = state.clock.elapsedTime * 0.008
-  })
-
-  return (
-    <points ref={pointsRef}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-      </bufferGeometry>
-      <pointsMaterial color={BRIGHT_PINK} size={0.025} transparent opacity={0.55} sizeAttenuation depthWrite={false} />
-    </points>
-  )
-}
+import { useEffect, useRef } from "react"
 
 export function FeaturesScene() {
-  return (
-    <div className="absolute inset-0 z-0 pointer-events-none">
-      <Canvas
-        camera={{ position: [0, 0, 8], fov: 35 }}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: "transparent" }}
-        dpr={[1, 1.5]}
-      >
-        <Suspense fallback={null}>
-          <ambientLight intensity={0.3} />
-          <pointLight position={[5, 5, 5]} intensity={1} color={VIOLET} />
-          <pointLight position={[-5, -3, 3]} intensity={0.6} color={PINK} />
-          <pointLight position={[0, 3, -4]} intensity={0.3} color={INDIGO} />
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
-          <BarChart3D />
-          <PieChart3D />
-          <SupplyChainFlow />
-          <DriftParticles />
-        </Suspense>
-      </Canvas>
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    let animationId: number
+    let w = 0
+    let h = 0
+
+    function resize() {
+      w = canvas!.parentElement?.clientWidth || window.innerWidth
+      h = canvas!.parentElement?.clientHeight || window.innerHeight
+      canvas!.width = w * window.devicePixelRatio
+      canvas!.height = h * window.devicePixelRatio
+      canvas!.style.width = `${w}px`
+      canvas!.style.height = `${h}px`
+      ctx!.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0)
+    }
+
+    resize()
+    window.addEventListener("resize", resize)
+
+    // Network nodes
+    const nodes = Array.from({ length: 25 }, () => ({
+      x: Math.random(),
+      y: Math.random(),
+      vx: (Math.random() - 0.5) * 0.0004,
+      vy: (Math.random() - 0.5) * 0.0004,
+      size: 1.5 + Math.random() * 2,
+      hue: 250 + Math.random() * 70,
+    }))
+
+    // Floating mini bar chart data
+    const bars = Array.from({ length: 7 }, (_, i) => ({
+      baseH: 0.12 + Math.random() * 0.18,
+      hue: [270, 300, 250, 310, 280, 260, 290][i],
+      phase: i * 0.6,
+    }))
+
+    // Pie chart segments
+    const pieSegments = [
+      { value: 0.35, hue: 270 },
+      { value: 0.25, hue: 320 },
+      { value: 0.2, hue: 250 },
+      { value: 0.2, hue: 290 },
+    ]
+
+    function draw(t: number) {
+      ctx!.clearRect(0, 0, w, h)
+
+      // Connection lines
+      nodes.forEach((a, i) => {
+        nodes.forEach((b, j) => {
+          if (j <= i) return
+          const dx = (a.x - b.x) * w
+          const dy = (a.y - b.y) * h
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          if (dist < 140) {
+            ctx!.beginPath()
+            ctx!.moveTo(a.x * w, a.y * h)
+            ctx!.lineTo(b.x * w, b.y * h)
+            ctx!.strokeStyle = `hsla(270, 40%, 60%, ${0.08 * (1 - dist / 140)})`
+            ctx!.lineWidth = 0.5
+            ctx!.stroke()
+          }
+        })
+      })
+
+      // Animate nodes
+      nodes.forEach((n) => {
+        n.x += n.vx
+        n.y += n.vy
+        if (n.x < 0 || n.x > 1) n.vx *= -1
+        if (n.y < 0 || n.y > 1) n.vy *= -1
+
+        const glow = ctx!.createRadialGradient(n.x * w, n.y * h, 0, n.x * w, n.y * h, n.size * 3)
+        glow.addColorStop(0, `hsla(${n.hue}, 60%, 65%, 0.35)`)
+        glow.addColorStop(1, "transparent")
+        ctx!.fillStyle = glow
+        ctx!.fillRect(n.x * w - n.size * 3, n.y * h - n.size * 3, n.size * 6, n.size * 6)
+
+        ctx!.beginPath()
+        ctx!.arc(n.x * w, n.y * h, n.size, 0, Math.PI * 2)
+        ctx!.fillStyle = `hsla(${n.hue}, 60%, 65%, 0.4)`
+        ctx!.fill()
+      })
+
+      // Floating bar chart (bottom-right)
+      const chartX = w * 0.75
+      const chartY = h * 0.72
+      bars.forEach((bar, i) => {
+        const animH = bar.baseH + Math.sin(t * 0.7 + bar.phase) * 0.05
+        const bh = animH * h * 0.22
+        const bx = chartX + i * 14
+        const by = chartY - bh
+
+        const barGrad = ctx!.createLinearGradient(bx, by, bx, chartY)
+        barGrad.addColorStop(0, `hsla(${bar.hue}, 60%, 65%, 0.3)`)
+        barGrad.addColorStop(1, `hsla(${bar.hue}, 50%, 45%, 0.1)`)
+        ctx!.fillStyle = barGrad
+        ctx!.fillRect(bx, by, 9, bh)
+
+        // Top highlight
+        ctx!.fillStyle = `hsla(${bar.hue}, 70%, 72%, 0.4)`
+        ctx!.fillRect(bx, by, 9, 2)
+      })
+      // Chart base line
+      ctx!.strokeStyle = "hsla(270, 40%, 55%, 0.15)"
+      ctx!.lineWidth = 1
+      ctx!.beginPath()
+      ctx!.moveTo(chartX - 4, chartY)
+      ctx!.lineTo(chartX + 7 * 14 + 10, chartY)
+      ctx!.stroke()
+
+      // Floating pie chart (top-left)
+      const pieX = w * 0.15
+      const pieY = h * 0.25
+      const pieR = Math.min(w, h) * 0.05
+      let startAngle = t * 0.15
+      pieSegments.forEach((seg) => {
+        const endAngle = startAngle + seg.value * Math.PI * 2
+        ctx!.beginPath()
+        ctx!.moveTo(pieX, pieY)
+        ctx!.arc(pieX, pieY, pieR, startAngle, endAngle)
+        ctx!.closePath()
+        ctx!.fillStyle = `hsla(${seg.hue}, 55%, 58%, 0.2)`
+        ctx!.fill()
+        ctx!.strokeStyle = `hsla(${seg.hue}, 60%, 65%, 0.3)`
+        ctx!.lineWidth = 1
+        ctx!.stroke()
+        startAngle = endAngle
+      })
+    }
+
+    function animate() {
+      const t = performance.now() / 1000
+      draw(t)
+      animationId = requestAnimationFrame(animate)
+    }
+
+    animate()
+
+    return () => {
+      cancelAnimationFrame(animationId)
+      window.removeEventListener("resize", resize)
+    }
+  }, [])
+
+  return (
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+      <canvas ref={canvasRef} className="h-full w-full" />
     </div>
   )
 }
