@@ -4,7 +4,6 @@ import { Navbar } from "@/components/landing/navbar"
 import { HeroSection } from "@/components/landing/hero-section"
 import { FeaturesSection } from "@/components/landing/features-section"
 import { HowItWorksSection } from "@/components/landing/how-it-works-section"
-import { CustomCursor } from "@/components/custom-cursor"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { motion } from "framer-motion"
@@ -13,7 +12,6 @@ import { CtaScene } from "@/components/cta-scene"
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
-      <CustomCursor />
       <Navbar />
       <HeroSection />
       <div id="features">

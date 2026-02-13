@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Inter, Space_Grotesk } from "next/font/google"
 import { WalletProvider } from "@/context/wallet-context"
+import { CustomCursor } from "@/components/custom-cursor"
 import { Toaster } from "sonner"
 import "./globals.css"
 
@@ -32,6 +33,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body className="font-sans antialiased bg-background text-foreground">
         <WalletProvider>
+          <CustomCursor />
           {children}
           <Toaster
             theme="dark"

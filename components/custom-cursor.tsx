@@ -103,10 +103,11 @@ export function CustomCursor() {
             opacity: isVisible ? 1 : 0,
           }}
           transition={{ duration: 0.15 }}
-          className="h-3 w-3 rounded-full"
+          className="h-3.5 w-3.5 rounded-full"
           style={{
-            background: "hsl(270 80% 65%)",
-            boxShadow: "0 0 12px 2px hsl(270 80% 65% / 0.6)",
+            background: "hsl(270 100% 78%)",
+            boxShadow:
+              "0 0 16px 4px hsl(270 100% 78% / 0.8), 0 0 40px 8px hsl(280 90% 70% / 0.4)",
           }}
         />
       </motion.div>
@@ -125,17 +126,17 @@ export function CustomCursor() {
           animate={{
             width: isHovering ? 56 : 36,
             height: isHovering ? 56 : 36,
-            opacity: isVisible ? (isHovering ? 0.8 : 0.4) : 0,
+            opacity: isVisible ? (isHovering ? 1 : 0.6) : 0,
             borderColor: isHovering
-              ? "hsl(320 70% 60% / 0.7)"
-              : "hsl(270 80% 65% / 0.3)",
+              ? "hsl(320 90% 72% / 0.9)"
+              : "hsl(270 100% 78% / 0.5)",
           }}
           transition={{ duration: 0.25, ease: "easeOut" }}
           className="rounded-full border-2"
           style={{
             boxShadow: isHovering
-              ? "0 0 20px 4px hsl(320 70% 60% / 0.2), inset 0 0 10px hsl(320 70% 60% / 0.05)"
-              : "none",
+              ? "0 0 24px 6px hsl(320 90% 72% / 0.35), inset 0 0 12px hsl(320 90% 72% / 0.1)"
+              : "0 0 10px 2px hsl(270 100% 78% / 0.15)",
           }}
         />
       </motion.div>
@@ -153,13 +154,13 @@ export function CustomCursor() {
         >
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 0.15 }}
+            animate={{ scale: 1, opacity: 0.3 }}
             exit={{ scale: 0.8, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="h-20 w-20 rounded-full"
+            className="h-24 w-24 rounded-full"
             style={{
               background:
-                "radial-gradient(circle, hsl(270 80% 65% / 0.3) 0%, hsl(320 70% 60% / 0.1) 50%, transparent 70%)",
+                "radial-gradient(circle, hsl(270 100% 78% / 0.45) 0%, hsl(320 90% 72% / 0.2) 50%, transparent 70%)",
             }}
           />
         </motion.div>
