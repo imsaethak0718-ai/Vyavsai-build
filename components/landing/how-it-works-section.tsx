@@ -1,6 +1,7 @@
 "use client"
 
 import { Upload, FlaskConical, Zap, FileCheck2 } from "lucide-react"
+import { ProcessScene } from "@/components/process-scene"
 import { motion } from "framer-motion"
 
 const steps = [
@@ -43,6 +44,7 @@ const itemVariants = {
 export function HowItWorksSection() {
   return (
     <section className="relative py-32 px-6">
+      <ProcessScene />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_50%_at_20%_80%,hsl(200_70%_50%_/_0.04),transparent)]" />
 
       <div className="relative mx-auto max-w-6xl">

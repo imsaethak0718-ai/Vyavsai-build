@@ -2,6 +2,7 @@
 
 import { Box, MapPin, Cpu, Shield, FileCheck, BarChart3 } from "lucide-react"
 import { AnimatedCounter } from "@/components/animated-counter"
+import { FeaturesScene } from "@/components/features-scene"
 import { motion } from "framer-motion"
 
 const features = [
@@ -59,6 +60,8 @@ const itemVariants = {
 export function FeaturesSection() {
   return (
     <section className="relative py-32 px-6">
+      {/* 3D background scene */}
+      <FeaturesScene />
       {/* Subtle background gradient */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_30%_at_50%_50%,hsl(165_80%_48%_/_0.03),transparent)]" />
 

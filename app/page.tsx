@@ -7,6 +7,7 @@ import { HowItWorksSection } from "@/components/landing/how-it-works-section"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { motion } from "framer-motion"
+import { CtaScene } from "@/components/cta-scene"
 
 export default function LandingPage() {
   return (
@@ -22,6 +23,7 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <section className="relative py-32 px-6 overflow-hidden">
+        <CtaScene />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,hsl(165_80%_48%_/_0.06),transparent)]" />
         <motion.div
           initial={{ opacity: 0, y: 30 }}
