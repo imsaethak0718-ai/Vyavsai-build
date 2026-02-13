@@ -2,8 +2,6 @@
 
 import { revenueData } from "@/lib/mock-data"
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -33,7 +31,7 @@ function CustomTooltip({ active, payload, label }: any) {
 
 export function RevenueChart() {
   return (
-    <div className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm">
+    <div className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm h-full">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-foreground">Revenue Forecast</h3>
@@ -41,11 +39,11 @@ export function RevenueChart() {
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-primary" />
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "#a855f7" }} />
             <span className="text-xs text-muted-foreground">Actual</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-chart-2" />
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "#ec4899" }} />
             <span className="text-xs text-muted-foreground">Forecast</span>
           </div>
         </div>
@@ -54,18 +52,18 @@ export function RevenueChart() {
         <AreaChart data={revenueData}>
           <defs>
             <linearGradient id="actualGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="hsl(165 80% 48%)" stopOpacity={0.2} />
-              <stop offset="95%" stopColor="hsl(165 80% 48%)" stopOpacity={0} />
+              <stop offset="5%" stopColor="#a855f7" stopOpacity={0.25} />
+              <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="forecastGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="hsl(200 70% 50%)" stopOpacity={0.15} />
-              <stop offset="95%" stopColor="hsl(200 70% 50%)" stopOpacity={0} />
+              <stop offset="5%" stopColor="#ec4899" stopOpacity={0.18} />
+              <stop offset="95%" stopColor="#ec4899" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 14% 14%)" />
-          <XAxis dataKey="month" stroke="hsl(215 14% 40%)" tick={{ fontSize: 11 }} />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(270 18% 14%)" />
+          <XAxis dataKey="month" stroke="hsl(270 12% 40%)" tick={{ fontSize: 11 }} />
           <YAxis
-            stroke="hsl(215 14% 40%)"
+            stroke="hsl(270 12% 40%)"
             tick={{ fontSize: 11 }}
             tickFormatter={(v) => `$${v / 1000}K`}
           />
@@ -73,21 +71,21 @@ export function RevenueChart() {
           <Area
             type="monotone"
             dataKey="actual"
-            stroke="hsl(165 80% 48%)"
+            stroke="#a855f7"
             strokeWidth={2}
             fill="url(#actualGradient)"
-            dot={{ r: 3, fill: "hsl(165 80% 48%)" }}
+            dot={{ r: 3, fill: "#a855f7" }}
             connectNulls={false}
             name="Actual"
           />
           <Area
             type="monotone"
             dataKey="forecast"
-            stroke="hsl(200 70% 50%)"
+            stroke="#ec4899"
             strokeWidth={2}
             strokeDasharray="6 3"
             fill="url(#forecastGradient)"
-            dot={{ r: 3, fill: "hsl(200 70% 50%)" }}
+            dot={{ r: 3, fill: "#ec4899" }}
             name="Forecast"
           />
         </AreaChart>

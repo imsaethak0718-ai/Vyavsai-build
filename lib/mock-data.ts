@@ -14,22 +14,42 @@ export const revenueData = [
   { month: "Dec", actual: null, forecast: 98000 },
 ]
 
-// India regional data
-export const indiaRegions = [
-  { id: "MH", name: "Maharashtra", demand: 92, risk: 18, category: "Electronics", x: 180, y: 340, size: 42 },
-  { id: "DL", name: "Delhi NCR", demand: 88, risk: 22, category: "Fashion", x: 215, y: 170, size: 35 },
-  { id: "KA", name: "Karnataka", demand: 85, risk: 15, category: "FMCG", x: 175, y: 430, size: 38 },
-  { id: "TN", name: "Tamil Nadu", demand: 80, risk: 20, category: "Automotive", x: 200, y: 490, size: 36 },
-  { id: "GJ", name: "Gujarat", demand: 78, risk: 25, category: "Textiles", x: 135, y: 280, size: 34 },
-  { id: "UP", name: "Uttar Pradesh", demand: 75, risk: 30, category: "Agriculture", x: 240, y: 200, size: 40 },
-  { id: "WB", name: "West Bengal", demand: 72, risk: 28, category: "Electronics", x: 320, y: 260, size: 32 },
-  { id: "RJ", name: "Rajasthan", demand: 68, risk: 35, category: "Textiles", x: 155, y: 220, size: 38 },
-  { id: "AP", name: "Andhra Pradesh", demand: 65, risk: 22, category: "FMCG", x: 215, y: 410, size: 34 },
-  { id: "KL", name: "Kerala", demand: 70, risk: 18, category: "Tourism", x: 170, y: 510, size: 28 },
-  { id: "TS", name: "Telangana", demand: 82, risk: 19, category: "IT Services", x: 200, y: 380, size: 30 },
-  { id: "MP", name: "Madhya Pradesh", demand: 60, risk: 32, category: "Agriculture", x: 210, y: 280, size: 42 },
-  { id: "PB", name: "Punjab", demand: 64, risk: 27, category: "Agriculture", x: 190, y: 150, size: 28 },
-  { id: "HR", name: "Haryana", demand: 70, risk: 24, category: "Automotive", x: 205, y: 175, size: 24 },
+// India regional data with real lat/lng
+export interface RegionData {
+  id: string
+  name: string
+  demand: number
+  risk: number
+  category: string
+  lat: number
+  lng: number
+  population: string
+  topProducts: string[]
+  monthlyVolume: number
+  trend: "up" | "down" | "stable"
+}
+
+export const indiaRegions: RegionData[] = [
+  { id: "MH", name: "Maharashtra", demand: 92, risk: 18, category: "Electronics", lat: 19.076, lng: 72.8777, population: "12.4M urban", topProducts: ["Smartphones", "Laptops", "Wearables"], monthlyVolume: 245000, trend: "up" },
+  { id: "DL", name: "Delhi NCR", demand: 88, risk: 22, category: "Fashion", lat: 28.6139, lng: 77.209, population: "16.8M urban", topProducts: ["Apparel", "Footwear", "Accessories"], monthlyVolume: 198000, trend: "up" },
+  { id: "KA", name: "Karnataka", demand: 85, risk: 15, category: "FMCG", lat: 12.9716, lng: 77.5946, population: "8.4M urban", topProducts: ["Personal Care", "Beverages", "Snacks"], monthlyVolume: 178000, trend: "up" },
+  { id: "TN", name: "Tamil Nadu", demand: 80, risk: 20, category: "Automotive", lat: 13.0827, lng: 80.2707, population: "7.1M urban", topProducts: ["Two-Wheelers", "Spare Parts", "Accessories"], monthlyVolume: 156000, trend: "stable" },
+  { id: "GJ", name: "Gujarat", demand: 78, risk: 25, category: "Textiles", lat: 23.0225, lng: 72.5714, population: "5.6M urban", topProducts: ["Cotton Fabric", "Sarees", "Industrial Textile"], monthlyVolume: 134000, trend: "up" },
+  { id: "UP", name: "Uttar Pradesh", demand: 75, risk: 30, category: "Agriculture", lat: 26.8467, lng: 80.9462, population: "11.0M urban", topProducts: ["Fertilizers", "Seeds", "Farm Equipment"], monthlyVolume: 167000, trend: "stable" },
+  { id: "WB", name: "West Bengal", demand: 72, risk: 28, category: "Electronics", lat: 22.5726, lng: 88.3639, population: "4.5M urban", topProducts: ["Mobile Phones", "Home Appliances", "LED Lights"], monthlyVolume: 112000, trend: "down" },
+  { id: "RJ", name: "Rajasthan", demand: 68, risk: 35, category: "Textiles", lat: 26.9124, lng: 75.7873, population: "3.5M urban", topProducts: ["Handicrafts", "Gems", "Textiles"], monthlyVolume: 98000, trend: "stable" },
+  { id: "AP", name: "Andhra Pradesh", demand: 65, risk: 22, category: "FMCG", lat: 15.9129, lng: 79.74, population: "3.5M urban", topProducts: ["Rice", "Spices", "Personal Care"], monthlyVolume: 89000, trend: "up" },
+  { id: "KL", name: "Kerala", demand: 70, risk: 18, category: "Tourism", lat: 10.8505, lng: 76.2711, population: "3.3M urban", topProducts: ["Ayurveda", "Spices", "Cashew"], monthlyVolume: 76000, trend: "up" },
+  { id: "TS", name: "Telangana", demand: 82, risk: 19, category: "IT Services", lat: 17.385, lng: 78.4867, population: "6.8M urban", topProducts: ["Software", "IT Hardware", "Cloud Services"], monthlyVolume: 145000, trend: "up" },
+  { id: "MP", name: "Madhya Pradesh", demand: 60, risk: 32, category: "Agriculture", lat: 23.2599, lng: 77.4126, population: "2.8M urban", topProducts: ["Soybean", "Wheat", "Cotton"], monthlyVolume: 72000, trend: "stable" },
+  { id: "PB", name: "Punjab", demand: 64, risk: 27, category: "Agriculture", lat: 31.1471, lng: 75.3412, population: "2.7M urban", topProducts: ["Wheat", "Rice", "Dairy"], monthlyVolume: 68000, trend: "down" },
+  { id: "HR", name: "Haryana", demand: 70, risk: 24, category: "Automotive", lat: 29.0588, lng: 76.0856, population: "3.5M urban", topProducts: ["Cars", "Tractors", "Auto Parts"], monthlyVolume: 94000, trend: "up" },
+  { id: "OR", name: "Odisha", demand: 55, risk: 38, category: "Mining", lat: 20.9517, lng: 85.0985, population: "1.8M urban", topProducts: ["Iron Ore", "Steel", "Aluminium"], monthlyVolume: 54000, trend: "stable" },
+  { id: "AS", name: "Assam", demand: 48, risk: 42, category: "Tea & Agriculture", lat: 26.2006, lng: 92.9376, population: "1.0M urban", topProducts: ["Tea", "Silk", "Bamboo"], monthlyVolume: 38000, trend: "stable" },
+  { id: "BR", name: "Bihar", demand: 52, risk: 40, category: "Agriculture", lat: 25.0961, lng: 85.3131, population: "2.0M urban", topProducts: ["Litchi", "Rice", "Maize"], monthlyVolume: 45000, trend: "up" },
+  { id: "JH", name: "Jharkhand", demand: 50, risk: 36, category: "Mining", lat: 23.6102, lng: 85.2799, population: "1.5M urban", topProducts: ["Coal", "Iron", "Steel"], monthlyVolume: 42000, trend: "stable" },
+  { id: "CG", name: "Chhattisgarh", demand: 45, risk: 35, category: "Mining", lat: 21.2787, lng: 81.8661, population: "1.1M urban", topProducts: ["Rice", "Steel", "Power"], monthlyVolume: 35000, trend: "down" },
+  { id: "GA", name: "Goa", demand: 62, risk: 15, category: "Tourism", lat: 15.2993, lng: 74.124, population: "0.6M urban", topProducts: ["Hospitality", "Cashew", "Seafood"], monthlyVolume: 28000, trend: "up" },
 ]
 
 // Blockchain events

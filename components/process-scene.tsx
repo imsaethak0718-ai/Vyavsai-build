@@ -2,137 +2,176 @@
 
 import { Canvas, useFrame } from "@react-three/fiber"
 import { useRef, Suspense, useMemo } from "react"
-import type { Points, Group } from "three"
+import type { Points, Group, Mesh } from "three"
 import * as THREE from "three"
 
 const VIOLET = "#a855f7"
 const PINK = "#ec4899"
 const INDIGO = "#6366f1"
 
-/* ── DNA double helix ── */
-function DNAHelix() {
+/* ── Pipeline conveyor belt with moving packages ── */
+function ConveyorBelt() {
   const groupRef = useRef<Group>(null)
+  const packagesRef = useRef<Group>(null)
 
-  const { spheres, linePositions } = useMemo(() => {
-    const items: { pos: [number, number, number]; color: string }[] = []
-    const lines: number[] = []
-    const turns = 3
-    const pointsPerTurn = 20
-    const total = turns * pointsPerTurn
-
-    for (let i = 0; i < total; i++) {
-      const t = (i / total) * Math.PI * 2 * turns
-      const y = ((i / total) - 0.5) * 8
-      const r = 1.2
-
-      const x1 = Math.cos(t) * r
-      const z1 = Math.sin(t) * r
-      const x2 = Math.cos(t + Math.PI) * r
-      const z2 = Math.sin(t + Math.PI) * r
-
-      items.push({ pos: [x1, y, z1], color: VIOLET })
-      items.push({ pos: [x2, y, z2], color: PINK })
-
-      if (i % 4 === 0) {
-        lines.push(x1, y, z1, x2, y, z2)
-      }
+  const beltSegments = useMemo(() => {
+    const segments: number[] = []
+    for (let i = 0; i < 30; i++) {
+      const x = (i - 15) * 0.4
+      segments.push(x, -0.5, 0, x + 0.35, -0.5, 0)
     }
-    return { spheres: items, linePositions: new Float32Array(lines) }
+    return new Float32Array(segments)
   }, [])
 
   useFrame((state) => {
-    if (!groupRef.current) return
-    groupRef.current.rotation.y = state.clock.elapsedTime * 0.06
-  })
-
-  return (
-    <group ref={groupRef} position={[3.5, 0, -2]}>
-      {spheres.map((s, i) => (
-        <mesh key={i} position={s.pos}>
-          <sphereGeometry args={[0.03, 8, 8]} />
-          <meshStandardMaterial
-            color={s.color}
-            emissive={s.color}
-            emissiveIntensity={1.5}
-            transparent
-            opacity={0.6}
-          />
-        </mesh>
-      ))}
-      {linePositions.length > 0 && (
-        <lineSegments>
-          <bufferGeometry>
-            <bufferAttribute attach="attributes-position" args={[linePositions, 3]} />
-          </bufferGeometry>
-          <lineBasicMaterial color={INDIGO} transparent opacity={0.06} />
-        </lineSegments>
-      )}
-    </group>
-  )
-}
-
-/* ── Floating circuit-like paths ── */
-function CircuitPaths() {
-  const groupRef = useRef<Group>(null)
-
-  const paths = useMemo(() => {
-    const items: { points: Float32Array; speed: number }[] = []
-    for (let p = 0; p < 8; p++) {
-      const verts: number[] = []
-      let x = (Math.random() - 0.5) * 10
-      let y = (Math.random() - 0.5) * 6
-      const z = (Math.random() - 0.5) * 3 - 2
-      for (let s = 0; s < 6; s++) {
-        verts.push(x, y, z)
-        if (s % 2 === 0) x += (Math.random() - 0.5) * 2
-        else y += (Math.random() - 0.5) * 2
-        verts.push(x, y, z)
-      }
-      items.push({ points: new Float32Array(verts), speed: 0.2 + Math.random() * 0.3 })
-    }
-    return items
-  }, [])
-
-  useFrame((state) => {
-    if (!groupRef.current) return
-    groupRef.current.children.forEach((child, i) => {
-      const mat = (child as THREE.LineSegments).material as THREE.LineBasicMaterial
-      mat.opacity = 0.04 + Math.sin(state.clock.elapsedTime * paths[i].speed + i) * 0.03
+    if (!packagesRef.current) return
+    const t = state.clock.elapsedTime
+    packagesRef.current.children.forEach((child, i) => {
+      const speed = 0.4
+      const offset = i * 2.5
+      child.position.x = ((t * speed + offset) % 12) - 6
+      child.position.y = -0.3 + Math.abs(Math.sin(t * 2 + i)) * 0.03
     })
   })
 
   return (
-    <group ref={groupRef}>
-      {paths.map((path, i) => (
-        <lineSegments key={i}>
-          <bufferGeometry>
-            <bufferAttribute attach="attributes-position" args={[path.points, 3]} />
-          </bufferGeometry>
-          <lineBasicMaterial color={VIOLET} transparent opacity={0.05} />
-        </lineSegments>
-      ))}
+    <group ref={groupRef} position={[0, -1.5, -1]}>
+      {/* Belt track */}
+      <lineSegments>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[beltSegments, 3]} />
+        </bufferGeometry>
+        <lineBasicMaterial color={VIOLET} transparent opacity={0.12} />
+      </lineSegments>
+      {/* Rails */}
+      <mesh position={[0, -0.5, -0.15]}>
+        <boxGeometry args={[12, 0.01, 0.01]} />
+        <meshStandardMaterial color={VIOLET} transparent opacity={0.15} emissive={VIOLET} emissiveIntensity={0.3} />
+      </mesh>
+      <mesh position={[0, -0.5, 0.15]}>
+        <boxGeometry args={[12, 0.01, 0.01]} />
+        <meshStandardMaterial color={VIOLET} transparent opacity={0.15} emissive={VIOLET} emissiveIntensity={0.3} />
+      </mesh>
+      {/* Moving packages */}
+      <group ref={packagesRef}>
+        {Array.from({ length: 5 }, (_, i) => (
+          <mesh key={i} position={[-4 + i * 2.5, -0.3, 0]}>
+            <boxGeometry args={[0.2, 0.2, 0.2]} />
+            <meshStandardMaterial
+              color={[PINK, VIOLET, INDIGO, PINK, VIOLET][i]}
+              emissive={[PINK, VIOLET, INDIGO, PINK, VIOLET][i]}
+              emissiveIntensity={1.2}
+              transparent
+              opacity={0.5}
+            />
+          </mesh>
+        ))}
+      </group>
     </group>
   )
 }
 
-/* ── Ambient particles ── */
+/* ── Processing nodes with data flow ── */
+function ProcessingNodes() {
+  const groupRef = useRef<Group>(null)
+
+  const nodes = useMemo(
+    () => [
+      { x: -4, y: 0, label: "Input", size: 0.2, color: PINK },
+      { x: -1.5, y: 0.3, label: "Process", size: 0.25, color: VIOLET },
+      { x: 1.5, y: -0.2, label: "Validate", size: 0.22, color: INDIGO },
+      { x: 4, y: 0.1, label: "Output", size: 0.2, color: PINK },
+    ],
+    []
+  )
+
+  const connectionLines = useMemo(() => {
+    const verts: number[] = []
+    for (let i = 0; i < nodes.length - 1; i++) {
+      verts.push(nodes[i].x, nodes[i].y, 0)
+      const midX = (nodes[i].x + nodes[i + 1].x) / 2
+      const midY = (nodes[i].y + nodes[i + 1].y) / 2 + 0.3
+      verts.push(midX, midY, 0)
+      verts.push(midX, midY, 0)
+      verts.push(nodes[i + 1].x, nodes[i + 1].y, 0)
+    }
+    return new Float32Array(verts)
+  }, [nodes])
+
+  useFrame((state) => {
+    if (!groupRef.current) return
+    const t = state.clock.elapsedTime
+    groupRef.current.children.forEach((child, i) => {
+      if (i < nodes.length) {
+        const mesh = child as Mesh
+        const pulse = 1 + Math.sin(t * 1.5 + i * 1.2) * 0.12
+        mesh.scale.setScalar(pulse)
+      }
+    })
+  })
+
+  return (
+    <group ref={groupRef} position={[0, 1, -1]}>
+      {nodes.map((node, i) => (
+        <mesh key={i} position={[node.x, node.y, 0]}>
+          <octahedronGeometry args={[node.size, 0]} />
+          <meshStandardMaterial
+            color={node.color}
+            transparent
+            opacity={0.2}
+            emissive={node.color}
+            emissiveIntensity={0.8}
+            wireframe
+          />
+        </mesh>
+      ))}
+      <lineSegments>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[connectionLines, 3]} />
+        </bufferGeometry>
+        <lineBasicMaterial color={VIOLET} transparent opacity={0.15} />
+      </lineSegments>
+    </group>
+  )
+}
+
+/* ── Scanning beam effect ── */
+function ScanBeam() {
+  const meshRef = useRef<Mesh>(null)
+
+  useFrame((state) => {
+    if (!meshRef.current) return
+    const t = state.clock.elapsedTime
+    meshRef.current.position.x = Math.sin(t * 0.3) * 5
+    const mat = meshRef.current.material as THREE.MeshStandardMaterial
+    mat.opacity = 0.03 + Math.sin(t * 0.6) * 0.02
+  })
+
+  return (
+    <mesh ref={meshRef} position={[0, 0, -2]}>
+      <planeGeometry args={[0.05, 6]} />
+      <meshStandardMaterial color={PINK} transparent opacity={0.04} emissive={PINK} emissiveIntensity={1} side={THREE.DoubleSide} />
+    </mesh>
+  )
+}
+
+/* ── Ambient dust ── */
 function AmbientDust() {
   const pointsRef = useRef<Points>(null)
 
   const positions = useMemo(() => {
-    const count = 100
+    const count = 80
     const pos = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 16
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 10
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 6
+      pos[i * 3] = (Math.random() - 0.5) * 14
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 8
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 5
     }
     return pos
   }, [])
 
   useFrame((state) => {
-    if (!pointsRef.current) return
-    pointsRef.current.rotation.y = state.clock.elapsedTime * 0.005
+    if (pointsRef.current) pointsRef.current.rotation.y = state.clock.elapsedTime * 0.004
   })
 
   return (
@@ -140,7 +179,7 @@ function AmbientDust() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial color={PINK} size={0.015} transparent opacity={0.25} sizeAttenuation depthWrite={false} />
+      <pointsMaterial color={VIOLET} size={0.012} transparent opacity={0.2} sizeAttenuation depthWrite={false} />
     </points>
   )
 }
@@ -149,7 +188,7 @@ export function ProcessScene() {
   return (
     <div className="absolute inset-0 z-0 pointer-events-none">
       <Canvas
-        camera={{ position: [0, 0, 8], fov: 35 }}
+        camera={{ position: [0, 0, 7], fov: 38 }}
         gl={{ antialias: true, alpha: true }}
         style={{ background: "transparent" }}
         dpr={[1, 1.5]}
@@ -159,8 +198,9 @@ export function ProcessScene() {
           <pointLight position={[5, 3, 4]} intensity={0.3} color={VIOLET} />
           <pointLight position={[-4, -2, 3]} intensity={0.15} color={PINK} />
 
-          <DNAHelix />
-          <CircuitPaths />
+          <ConveyorBelt />
+          <ProcessingNodes />
+          <ScanBeam />
           <AmbientDust />
         </Suspense>
       </Canvas>

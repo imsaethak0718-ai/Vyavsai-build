@@ -2,7 +2,7 @@
 
 import { MetricCards } from "@/components/dashboard/metric-cards"
 import { RevenueChart } from "@/components/dashboard/revenue-chart"
-import { IndiaHeatmap } from "@/components/dashboard/india-heatmap"
+import { DemandMap } from "@/components/dashboard/demand-map"
 import { motion } from "framer-motion"
 
 export default function DashboardPage() {
@@ -32,10 +32,10 @@ export default function DashboardPage() {
         className="grid gap-6 lg:grid-cols-5"
       >
         <div className="lg:col-span-3">
-          <RevenueChart />
+          <DemandMap />
         </div>
         <div className="lg:col-span-2">
-          <IndiaHeatmap />
+          <RevenueChart />
         </div>
       </motion.div>
     </div>
