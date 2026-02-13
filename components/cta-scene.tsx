@@ -1,10 +1,14 @@
 "use client"
 
 import { Canvas, useFrame } from "@react-three/fiber"
-import { Sphere, Float } from "@react-three/drei"
+import { Float } from "@react-three/drei"
 import { useRef, Suspense, useMemo } from "react"
 import type { Points, Group, Mesh } from "three"
 import * as THREE from "three"
+
+const VIOLET = "#a855f7"
+const PINK = "#ec4899"
+const INDIGO = "#6366f1"
 
 /* ── Rotating torus knot ── */
 function TorusKnot() {
@@ -21,10 +25,10 @@ function TorusKnot() {
       <mesh ref={meshRef}>
         <torusKnotGeometry args={[1.5, 0.04, 200, 16, 2, 3]} />
         <meshStandardMaterial
-          color="#26d9a0"
+          color={VIOLET}
           transparent
           opacity={0.12}
-          emissive="#26d9a0"
+          emissive={VIOLET}
           emissiveIntensity={0.8}
           wireframe
         />
@@ -36,6 +40,7 @@ function TorusKnot() {
 /* ── Expanding/contracting rings ── */
 function PulsingRings() {
   const groupRef = useRef<Group>(null)
+  const colors = [VIOLET, PINK, INDIGO, VIOLET]
 
   useFrame((state) => {
     if (!groupRef.current) return
@@ -54,10 +59,10 @@ function PulsingRings() {
         <mesh key={i} rotation={[Math.PI / 2, 0, 0]}>
           <torusGeometry args={[r, 0.006, 8, 100]} />
           <meshStandardMaterial
-            color={i % 2 === 0 ? "#26d9a0" : "#3b82f6"}
+            color={colors[i]}
             transparent
             opacity={0.06}
-            emissive={i % 2 === 0 ? "#26d9a0" : "#3b82f6"}
+            emissive={colors[i]}
             emissiveIntensity={0.6}
           />
         </mesh>
@@ -94,7 +99,7 @@ function SpiralParticles() {
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        color="#26d9a0"
+        color={PINK}
         size={0.02}
         transparent
         opacity={0.4}
@@ -116,8 +121,8 @@ export function CtaScene() {
       >
         <Suspense fallback={null}>
           <ambientLight intensity={0.08} />
-          <pointLight position={[4, 4, 4]} intensity={0.5} color="#26d9a0" />
-          <pointLight position={[-4, -2, 2]} intensity={0.25} color="#3b82f6" />
+          <pointLight position={[4, 4, 4]} intensity={0.5} color={VIOLET} />
+          <pointLight position={[-4, -2, 2]} intensity={0.25} color={PINK} />
 
           <TorusKnot />
           <PulsingRings />

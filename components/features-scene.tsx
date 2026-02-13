@@ -1,12 +1,15 @@
 "use client"
 
 import { Canvas, useFrame } from "@react-three/fiber"
-import { Float, Sphere } from "@react-three/drei"
 import { useRef, Suspense, useMemo } from "react"
 import type { Points, Group } from "three"
 import * as THREE from "three"
 
-/* ── Grid of floating cubes forming a plane ── */
+const VIOLET = "#a855f7"
+const PINK = "#ec4899"
+const INDIGO = "#6366f1"
+
+/* ── Grid of floating cubes ── */
 function FloatingGrid() {
   const groupRef = useRef<Group>(null)
 
@@ -38,10 +41,10 @@ function FloatingGrid() {
         <mesh key={i} position={[cube.x, 0, cube.z]}>
           <boxGeometry args={[0.08, 0.08, 0.08]} />
           <meshStandardMaterial
-            color="#26d9a0"
+            color={VIOLET}
             transparent
             opacity={0.05}
-            emissive="#26d9a0"
+            emissive={VIOLET}
             emissiveIntensity={1}
           />
         </mesh>
@@ -76,7 +79,7 @@ function DriftParticles() {
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        color="#26d9a0"
+        color={PINK}
         size={0.02}
         transparent
         opacity={0.3}
@@ -101,6 +104,7 @@ function FloatingHexagons() {
         ] as [number, number, number],
         scale: 0.3 + Math.random() * 0.4,
         rotSpeed: 0.1 + Math.random() * 0.2,
+        color: i % 2 === 0 ? VIOLET : INDIGO,
       })),
     []
   )
@@ -121,11 +125,11 @@ function FloatingHexagons() {
         <mesh key={i} position={hex.position} scale={hex.scale}>
           <cylinderGeometry args={[1, 1, 0.1, 6]} />
           <meshStandardMaterial
-            color="#26d9a0"
+            color={hex.color}
             wireframe
             transparent
             opacity={0.06}
-            emissive="#26d9a0"
+            emissive={hex.color}
             emissiveIntensity={0.5}
           />
         </mesh>
@@ -145,8 +149,8 @@ export function FeaturesScene() {
       >
         <Suspense fallback={null}>
           <ambientLight intensity={0.08} />
-          <pointLight position={[5, 5, 5]} intensity={0.3} color="#26d9a0" />
-          <pointLight position={[-5, -3, 3]} intensity={0.15} color="#3b82f6" />
+          <pointLight position={[5, 5, 5]} intensity={0.3} color={VIOLET} />
+          <pointLight position={[-5, -3, 3]} intensity={0.15} color={PINK} />
 
           <FloatingGrid />
           <DriftParticles />

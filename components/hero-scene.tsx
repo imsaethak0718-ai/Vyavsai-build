@@ -2,9 +2,13 @@
 
 import { Canvas, useFrame } from "@react-three/fiber"
 import { Float, Sphere, Torus } from "@react-three/drei"
-import { useRef, Suspense, useMemo, useCallback } from "react"
+import { useRef, Suspense, useMemo } from "react"
 import type { Mesh, Group, Points, LineSegments as TLineSegments } from "three"
 import * as THREE from "three"
+
+const VIOLET = "#a855f7"
+const PINK = "#ec4899"
+const INDIGO = "#6366f1"
 
 /* ── Central glowing sphere ── */
 function CoreSphere() {
@@ -23,11 +27,11 @@ function CoreSphere() {
     <Float speed={1.2} rotationIntensity={0.15} floatIntensity={0.35}>
       <Sphere ref={meshRef} args={[1.4, 128, 128]}>
         <meshStandardMaterial
-          color="#26d9a0"
+          color={VIOLET}
           roughness={0.1}
           metalness={0.95}
-          emissive="#26d9a0"
-          emissiveIntensity={0.18}
+          emissive={VIOLET}
+          emissiveIntensity={0.2}
         />
       </Sphere>
     </Float>
@@ -47,7 +51,7 @@ function GlassSphere() {
     <Float speed={0.6} rotationIntensity={0.1} floatIntensity={0.15}>
       <Sphere ref={meshRef} args={[2.4, 64, 64]}>
         <meshStandardMaterial
-          color="#1a3040"
+          color="#2a1540"
           transparent
           opacity={0.06}
           roughness={0.05}
@@ -59,7 +63,7 @@ function GlassSphere() {
   )
 }
 
-/* ── Wireframe icosahedron that slowly rotates ── */
+/* ── Wireframe icosahedron ── */
 function WireframeIcosahedron() {
   const meshRef = useRef<Mesh>(null)
 
@@ -75,11 +79,11 @@ function WireframeIcosahedron() {
     <mesh ref={meshRef}>
       <icosahedronGeometry args={[3.2, 1]} />
       <meshStandardMaterial
-        color="#26d9a0"
+        color={VIOLET}
         wireframe
         transparent
         opacity={0.08}
-        emissive="#26d9a0"
+        emissive={VIOLET}
         emissiveIntensity={0.3}
       />
     </mesh>
@@ -87,7 +91,7 @@ function WireframeIcosahedron() {
 }
 
 /* ── Orbital rings ── */
-function OrbitalRing({ radius, speed, tilt, opacity = 0.2 }: { radius: number; speed: number; tilt: number; opacity?: number }) {
+function OrbitalRing({ radius, speed, tilt, opacity = 0.2, color = VIOLET }: { radius: number; speed: number; tilt: number; opacity?: number; color?: string }) {
   const groupRef = useRef<Group>(null)
 
   useFrame((state) => {
@@ -100,10 +104,10 @@ function OrbitalRing({ radius, speed, tilt, opacity = 0.2 }: { radius: number; s
     <group ref={groupRef}>
       <Torus args={[radius, 0.005, 16, 200]}>
         <meshStandardMaterial
-          color="#26d9a0"
+          color={color}
           transparent
           opacity={opacity}
-          emissive="#26d9a0"
+          emissive={color}
           emissiveIntensity={0.5}
         />
       </Torus>
@@ -112,7 +116,7 @@ function OrbitalRing({ radius, speed, tilt, opacity = 0.2 }: { radius: number; s
 }
 
 /* ── Pulsing energy ring ── */
-function EnergyRing({ radius, speed, axis }: { radius: number; speed: number; axis: "x" | "y" | "z" }) {
+function EnergyRing({ radius, speed, axis, color = PINK }: { radius: number; speed: number; axis: "x" | "y" | "z"; color?: string }) {
   const meshRef = useRef<Mesh>(null)
 
   useFrame((state) => {
@@ -129,10 +133,10 @@ function EnergyRing({ radius, speed, axis }: { radius: number; speed: number; ax
     <mesh ref={meshRef}>
       <torusGeometry args={[radius, 0.015, 8, 100]} />
       <meshStandardMaterial
-        color="#3b82f6"
+        color={color}
         transparent
         opacity={0.08}
-        emissive="#3b82f6"
+        emissive={color}
         emissiveIntensity={0.6}
       />
     </mesh>
@@ -157,10 +161,10 @@ function DataNetwork() {
           r * Math.cos(phi),
         ] as [number, number, number],
         scale: 0.025 + ((i * 7 + 3) % 11) / 11 * 0.04,
+        color: i % 3 === 0 ? PINK : i % 3 === 1 ? VIOLET : INDIGO,
       }
     })
 
-    // Build connection lines between nearby nodes
     const lineVerts: number[] = []
     const threshold = 2.0
     for (let i = 0; i < nodeList.length; i++) {
@@ -194,8 +198,8 @@ function DataNetwork() {
         <Float key={i} speed={1.2 + i * 0.15} floatIntensity={0.2}>
           <Sphere args={[node.scale, 12, 12]} position={node.position}>
             <meshStandardMaterial
-              color="#26d9a0"
-              emissive="#26d9a0"
+              color={node.color}
+              emissive={node.color}
               emissiveIntensity={2.0}
             />
           </Sphere>
@@ -206,7 +210,7 @@ function DataNetwork() {
           <bufferGeometry>
             <bufferAttribute attach="attributes-position" args={[linePositions, 3]} />
           </bufferGeometry>
-          <lineBasicMaterial color="#26d9a0" transparent opacity={0.1} />
+          <lineBasicMaterial color={VIOLET} transparent opacity={0.1} />
         </lineSegments>
       )}
     </group>
@@ -243,7 +247,7 @@ function ParticleField() {
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        color="#26d9a0"
+        color={VIOLET}
         size={0.018}
         transparent
         opacity={0.5}
@@ -254,8 +258,8 @@ function ParticleField() {
   )
 }
 
-/* ── Secondary blue particles ── */
-function BlueParticles() {
+/* ── Pink accent particles ── */
+function PinkParticles() {
   const pointsRef = useRef<Points>(null)
 
   const positions = useMemo(() => {
@@ -284,7 +288,7 @@ function BlueParticles() {
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        color="#3b82f6"
+        color={PINK}
         size={0.015}
         transparent
         opacity={0.35}
@@ -308,6 +312,7 @@ function OrbitingSatellites() {
         size: 0.04 + (i % 3) * 0.015,
         tiltX: Math.sin(i * 1.2) * 0.5,
         tiltZ: Math.cos(i * 0.8) * 0.4,
+        color: i % 3 === 0 ? PINK : i % 3 === 1 ? VIOLET : INDIGO,
       })),
     []
   )
@@ -330,8 +335,8 @@ function OrbitingSatellites() {
       {satellites.map((sat, i) => (
         <Sphere key={i} args={[sat.size, 12, 12]}>
           <meshStandardMaterial
-            color={i % 2 === 0 ? "#26d9a0" : "#3b82f6"}
-            emissive={i % 2 === 0 ? "#26d9a0" : "#3b82f6"}
+            color={sat.color}
+            emissive={sat.color}
             emissiveIntensity={3}
           />
         </Sphere>
@@ -351,28 +356,28 @@ export function HeroScene() {
       >
         <Suspense fallback={null}>
           <ambientLight intensity={0.12} />
-          <pointLight position={[5, 5, 5]} intensity={0.8} color="#26d9a0" />
-          <pointLight position={[-5, -3, 3]} intensity={0.4} color="#3b82f6" />
+          <pointLight position={[5, 5, 5]} intensity={0.8} color={VIOLET} />
+          <pointLight position={[-5, -3, 3]} intensity={0.4} color={PINK} />
           <pointLight position={[0, 5, -5]} intensity={0.25} color="#ffffff" />
-          <pointLight position={[-3, 4, -3]} intensity={0.15} color="#8b5cf6" />
+          <pointLight position={[-3, 4, -3]} intensity={0.2} color={INDIGO} />
 
           <CoreSphere />
           <GlassSphere />
           <WireframeIcosahedron />
 
-          <OrbitalRing radius={2.6} speed={0.2} tilt={0.35} opacity={0.2} />
-          <OrbitalRing radius={3.0} speed={-0.14} tilt={-0.55} opacity={0.15} />
-          <OrbitalRing radius={3.4} speed={0.09} tilt={0.85} opacity={0.12} />
-          <OrbitalRing radius={3.8} speed={-0.06} tilt={-0.2} opacity={0.08} />
-          <OrbitalRing radius={4.2} speed={0.04} tilt={1.1} opacity={0.06} />
+          <OrbitalRing radius={2.6} speed={0.2} tilt={0.35} opacity={0.2} color={VIOLET} />
+          <OrbitalRing radius={3.0} speed={-0.14} tilt={-0.55} opacity={0.15} color={PINK} />
+          <OrbitalRing radius={3.4} speed={0.09} tilt={0.85} opacity={0.12} color={INDIGO} />
+          <OrbitalRing radius={3.8} speed={-0.06} tilt={-0.2} opacity={0.08} color={VIOLET} />
+          <OrbitalRing radius={4.2} speed={0.04} tilt={1.1} opacity={0.06} color={PINK} />
 
-          <EnergyRing radius={1.9} speed={1.5} axis="x" />
-          <EnergyRing radius={2.1} speed={1.2} axis="z" />
+          <EnergyRing radius={1.9} speed={1.5} axis="x" color={PINK} />
+          <EnergyRing radius={2.1} speed={1.2} axis="z" color={INDIGO} />
 
           <DataNetwork />
           <OrbitingSatellites />
           <ParticleField />
-          <BlueParticles />
+          <PinkParticles />
         </Suspense>
       </Canvas>
     </div>

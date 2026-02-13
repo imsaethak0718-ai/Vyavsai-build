@@ -11,8 +11,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-geist-sans)'],
-        mono: ['var(--font-geist-mono)'],
+        sans: ['var(--font-inter)'],
+        heading: ['var(--font-space-grotesk)'],
       },
       colors: {
         background: 'hsl(var(--background))',

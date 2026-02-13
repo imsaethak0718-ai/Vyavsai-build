@@ -45,7 +45,7 @@ export function HowItWorksSection() {
   return (
     <section className="relative py-32 px-6">
       <ProcessScene />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_50%_at_20%_80%,hsl(200_70%_50%_/_0.04),transparent)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_50%_at_20%_80%,hsl(250_70%_65%_/_0.04),transparent)]" />
 
       <div className="relative mx-auto max-w-6xl">
         <motion.div
@@ -55,8 +55,8 @@ export function HowItWorksSection() {
           transition={{ duration: 0.6 }}
           className="mb-16 text-center"
         >
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">Process</p>
-          <h2 className="mt-3 text-4xl font-bold text-foreground md:text-5xl text-balance">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Process</p>
+          <h2 className="mt-3 font-heading text-4xl font-bold text-foreground md:text-5xl text-balance">
             How it works
           </h2>
         </motion.div>
@@ -69,18 +69,18 @@ export function HowItWorksSection() {
           className="relative grid gap-8 md:grid-cols-2 lg:grid-cols-4"
         >
           {/* Connecting line */}
-          <div className="absolute top-12 left-[12.5%] right-[12.5%] hidden h-px bg-gradient-to-r from-transparent via-border/50 to-transparent lg:block" />
+          <div className="absolute top-12 left-[12.5%] right-[12.5%] hidden h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent lg:block" />
 
           {steps.map((step) => (
-            <motion.div key={step.step} variants={itemVariants} className="group relative">
-              <div className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm transition-all hover:border-primary/20 hover:bg-card/60">
+            <motion.div key={step.step} variants={itemVariants} className="group relative" data-hover>
+              <div className="rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:bg-card/60 hover:-translate-y-1 hover:shadow-[0_8px_30px_-10px_hsl(270_80%_65%_/_0.15)]">
                 <div className="mb-6 flex items-center justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 transition-colors group-hover:bg-primary/20">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 transition-all duration-300 group-hover:bg-primary/20 group-hover:scale-110">
                     <step.icon className="h-6 w-6 text-primary" />
                   </div>
-                  <span className="font-mono text-3xl font-bold text-border/60">{step.step}</span>
+                  <span className="font-heading text-3xl font-bold text-border/60">{step.step}</span>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground">{step.title}</h3>
+                <h3 className="font-heading text-lg font-semibold text-foreground">{step.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.description}</p>
               </div>
             </motion.div>

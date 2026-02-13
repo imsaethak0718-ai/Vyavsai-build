@@ -1,17 +1,17 @@
 import type { Metadata, Viewport } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Inter, Space_Grotesk } from "next/font/google"
 import { WalletProvider } from "@/context/wallet-context"
 import { Toaster } from "sonner"
 import "./globals.css"
 
-const geistSans = Geist({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-geist-sans",
+  variable: "--font-inter",
 })
 
-const geistMono = Geist_Mono({
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
-  variable: "--font-geist-mono",
+  variable: "--font-space-grotesk",
 })
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#0a0d12",
+  themeColor: "#09060f",
 }
 
 export default function RootLayout({
@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body className="font-sans antialiased bg-background text-foreground">
         <WalletProvider>
           {children}
@@ -37,9 +37,9 @@ export default function RootLayout({
             theme="dark"
             toastOptions={{
               style: {
-                background: "hsl(220 18% 7%)",
-                border: "1px solid hsl(220 14% 16%)",
-                color: "hsl(210 20% 96%)",
+                background: "hsl(270 30% 6%)",
+                border: "1px solid hsl(270 20% 16%)",
+                color: "hsl(270 20% 96%)",
               },
             }}
           />

@@ -60,10 +60,8 @@ const itemVariants = {
 export function FeaturesSection() {
   return (
     <section className="relative py-32 px-6">
-      {/* 3D background scene */}
       <FeaturesScene />
-      {/* Subtle background gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_30%_at_50%_50%,hsl(165_80%_48%_/_0.03),transparent)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_30%_at_50%_50%,hsl(270_80%_65%_/_0.04),transparent)]" />
 
       <div className="relative mx-auto max-w-6xl">
         <motion.div
@@ -73,8 +71,8 @@ export function FeaturesSection() {
           transition={{ duration: 0.6 }}
           className="mb-16 text-center"
         >
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">Core Capabilities</p>
-          <h2 className="mt-3 text-4xl font-bold text-foreground md:text-5xl text-balance">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Core Capabilities</p>
+          <h2 className="mt-3 font-heading text-4xl font-bold text-foreground md:text-5xl text-balance">
             Infrastructure for autonomous commerce
           </h2>
         </motion.div>
@@ -90,12 +88,13 @@ export function FeaturesSection() {
             <motion.div
               key={feature.title}
               variants={itemVariants}
-              className="group rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm transition-all hover:border-primary/20 hover:bg-card/60"
+              data-hover
+              className="group rounded-2xl border border-border/50 bg-card/40 p-6 backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:bg-card/60 hover:-translate-y-1 hover:shadow-[0_8px_30px_-10px_hsl(270_80%_65%_/_0.15)]"
             >
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 transition-all duration-300 group-hover:bg-primary/20 group-hover:scale-110">
                 <feature.icon className="h-5 w-5 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground">{feature.title}</h3>
+              <h3 className="font-heading text-lg font-semibold text-foreground">{feature.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
             </motion.div>
           ))}
@@ -110,7 +109,7 @@ export function FeaturesSection() {
         >
           {stats.map((stat) => (
             <div key={stat.label} className="text-center">
-              <div className="text-3xl font-bold text-foreground md:text-4xl">
+              <div className="font-heading text-3xl font-bold text-foreground md:text-4xl">
                 <AnimatedCounter end={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
               </div>
               <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>

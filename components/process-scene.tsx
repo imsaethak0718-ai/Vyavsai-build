@@ -2,10 +2,14 @@
 
 import { Canvas, useFrame } from "@react-three/fiber"
 import { useRef, Suspense, useMemo } from "react"
-import type { Points, Group, Mesh } from "three"
+import type { Points, Group } from "three"
 import * as THREE from "three"
 
-/* ── DNA double helix representing the process flow ── */
+const VIOLET = "#a855f7"
+const PINK = "#ec4899"
+const INDIGO = "#6366f1"
+
+/* ── DNA double helix ── */
 function DNAHelix() {
   const groupRef = useRef<Group>(null)
 
@@ -26,10 +30,9 @@ function DNAHelix() {
       const x2 = Math.cos(t + Math.PI) * r
       const z2 = Math.sin(t + Math.PI) * r
 
-      items.push({ pos: [x1, y, z1], color: "#26d9a0" })
-      items.push({ pos: [x2, y, z2], color: "#3b82f6" })
+      items.push({ pos: [x1, y, z1], color: VIOLET })
+      items.push({ pos: [x2, y, z2], color: PINK })
 
-      // Cross-connection every 4 steps
       if (i % 4 === 0) {
         lines.push(x1, y, z1, x2, y, z2)
       }
@@ -61,7 +64,7 @@ function DNAHelix() {
           <bufferGeometry>
             <bufferAttribute attach="attributes-position" args={[linePositions, 3]} />
           </bufferGeometry>
-          <lineBasicMaterial color="#26d9a0" transparent opacity={0.06} />
+          <lineBasicMaterial color={INDIGO} transparent opacity={0.06} />
         </lineSegments>
       )}
     </group>
@@ -105,7 +108,7 @@ function CircuitPaths() {
           <bufferGeometry>
             <bufferAttribute attach="attributes-position" args={[path.points, 3]} />
           </bufferGeometry>
-          <lineBasicMaterial color="#26d9a0" transparent opacity={0.05} />
+          <lineBasicMaterial color={VIOLET} transparent opacity={0.05} />
         </lineSegments>
       ))}
     </group>
@@ -137,7 +140,7 @@ function AmbientDust() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial color="#3b82f6" size={0.015} transparent opacity={0.25} sizeAttenuation depthWrite={false} />
+      <pointsMaterial color={PINK} size={0.015} transparent opacity={0.25} sizeAttenuation depthWrite={false} />
     </points>
   )
 }
@@ -153,8 +156,8 @@ export function ProcessScene() {
       >
         <Suspense fallback={null}>
           <ambientLight intensity={0.06} />
-          <pointLight position={[5, 3, 4]} intensity={0.3} color="#26d9a0" />
-          <pointLight position={[-4, -2, 3]} intensity={0.15} color="#3b82f6" />
+          <pointLight position={[5, 3, 4]} intensity={0.3} color={VIOLET} />
+          <pointLight position={[-4, -2, 3]} intensity={0.15} color={PINK} />
 
           <DNAHelix />
           <CircuitPaths />

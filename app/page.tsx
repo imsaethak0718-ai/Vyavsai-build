@@ -4,6 +4,7 @@ import { Navbar } from "@/components/landing/navbar"
 import { HeroSection } from "@/components/landing/hero-section"
 import { FeaturesSection } from "@/components/landing/features-section"
 import { HowItWorksSection } from "@/components/landing/how-it-works-section"
+import { CustomCursor } from "@/components/custom-cursor"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { motion } from "framer-motion"
@@ -12,6 +13,7 @@ import { CtaScene } from "@/components/cta-scene"
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
+      <CustomCursor />
       <Navbar />
       <HeroSection />
       <div id="features">
@@ -24,7 +26,7 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="relative py-32 px-6 overflow-hidden">
         <CtaScene />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,hsl(165_80%_48%_/_0.06),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,hsl(270_80%_65%_/_0.06),transparent)]" />
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -32,7 +34,7 @@ export default function LandingPage() {
           transition={{ duration: 0.7 }}
           className="relative mx-auto max-w-3xl text-center"
         >
-          <h2 className="text-4xl font-bold text-foreground md:text-5xl text-balance">
+          <h2 className="font-heading text-4xl font-bold text-foreground md:text-5xl text-balance">
             Ready to automate your commerce?
           </h2>
           <p className="mt-4 text-lg text-muted-foreground text-pretty">
@@ -40,10 +42,11 @@ export default function LandingPage() {
           </p>
           <Link
             href="/dashboard"
-            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 glow-md"
+            data-hover
+            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:scale-[1.03] glow-md"
           >
             Launch Dashboard
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </motion.div>
       </section>
@@ -55,7 +58,7 @@ export default function LandingPage() {
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary">
               <span className="text-xs font-bold text-primary-foreground">V</span>
             </div>
-            <span className="text-sm font-semibold text-foreground">VyavsAI</span>
+            <span className="text-sm font-heading font-semibold text-foreground">VyavsAI</span>
           </div>
           <p className="text-xs text-muted-foreground">
             Built on Polygon. Powered by AI. Secured by blockchain.
