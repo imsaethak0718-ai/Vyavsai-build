@@ -39,7 +39,7 @@ export default function LandingPage() {
             Join forward-thinking retailers using AI and blockchain to make smarter decisions, faster.
           </p>
           <Link
-            href="/dashboard"
+            href="/login"
             data-hover
             className="mt-8 inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:scale-[1.03] glow-md"
           >

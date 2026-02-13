@@ -27,7 +27,7 @@ export function Navbar() {
           {[
             { href: "#features", label: "Features" },
             { href: "#how-it-works", label: "How it Works" },
-            { href: "/dashboard", label: "Dashboard" },
+            { href: "/login", label: "Dashboard" },
           ].map((link) => (
             <Link
               key={link.href}
