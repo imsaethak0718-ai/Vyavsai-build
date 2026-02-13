@@ -5,9 +5,11 @@ import { useRef, Suspense, useMemo } from "react"
 import type { Points, Group, Mesh } from "three"
 import * as THREE from "three"
 
-const VIOLET = "#a855f7"
-const PINK = "#ec4899"
-const INDIGO = "#6366f1"
+const VIOLET = "#c084fc"
+const PINK = "#f472b6"
+const INDIGO = "#818cf8"
+const BRIGHT_VIOLET = "#d8b4fe"
+const BRIGHT_PINK = "#f9a8d4"
 
 /* ── Floating 3D bar chart ── */
 function BarChart3D() {
@@ -18,7 +20,7 @@ function BarChart3D() {
       Array.from({ length: 7 }, (_, i) => ({
         height: 0.4 + Math.random() * 1.2,
         x: (i - 3) * 0.45,
-        color: [VIOLET, PINK, INDIGO, VIOLET, PINK, INDIGO, VIOLET][i],
+        color: [VIOLET, BRIGHT_PINK, INDIGO, VIOLET, BRIGHT_PINK, INDIGO, VIOLET][i],
       })),
     []
   )
@@ -44,16 +46,16 @@ function BarChart3D() {
           <meshStandardMaterial
             color={bar.color}
             transparent
-            opacity={0.25}
+            opacity={0.55}
             emissive={bar.color}
-            emissiveIntensity={0.6}
+            emissiveIntensity={1.5}
           />
         </mesh>
       ))}
       {/* Base line */}
-      <mesh position={[0, 0, 0]} rotation={[0, 0, 0]}>
-        <boxGeometry args={[3.5, 0.01, 0.3]} />
-        <meshStandardMaterial color={VIOLET} transparent opacity={0.1} emissive={VIOLET} emissiveIntensity={0.3} />
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[3.5, 0.015, 0.3]} />
+        <meshStandardMaterial color={VIOLET} transparent opacity={0.3} emissive={VIOLET} emissiveIntensity={0.8} />
       </mesh>
     </group>
   )
@@ -66,9 +68,9 @@ function PieChart3D() {
   const segments = useMemo(() => {
     const data = [
       { value: 0.35, color: VIOLET },
-      { value: 0.25, color: PINK },
+      { value: 0.25, color: BRIGHT_PINK },
       { value: 0.2, color: INDIGO },
-      { value: 0.2, color: "#7c3aed" },
+      { value: 0.2, color: BRIGHT_VIOLET },
     ]
     let startAngle = 0
     return data.map((d) => {
@@ -109,9 +111,9 @@ function PieChart3D() {
             <meshStandardMaterial
               color={seg.color}
               transparent
-              opacity={0.2}
+              opacity={0.45}
               emissive={seg.color}
-              emissiveIntensity={0.5}
+              emissiveIntensity={1.2}
             />
           </mesh>
         )
@@ -126,10 +128,10 @@ function SupplyChainFlow() {
 
   const nodes = useMemo(
     () => [
-      { x: -2, y: 2, label: "Supplier", color: PINK },
-      { x: -0.5, y: 2.4, label: "Warehouse", color: VIOLET },
-      { x: 1, y: 1.8, label: "AI Engine", color: INDIGO },
-      { x: 2.5, y: 2.2, label: "Retailer", color: PINK },
+      { x: -2, y: 2, color: BRIGHT_PINK },
+      { x: -0.5, y: 2.4, color: BRIGHT_VIOLET },
+      { x: 1, y: 1.8, color: INDIGO },
+      { x: 2.5, y: 2.2, color: BRIGHT_PINK },
     ],
     []
   )
@@ -156,15 +158,15 @@ function SupplyChainFlow() {
     <group ref={groupRef}>
       {nodes.map((node, i) => (
         <mesh key={i} position={[node.x, node.y, -1]}>
-          <sphereGeometry args={[0.06, 12, 12]} />
-          <meshStandardMaterial color={node.color} emissive={node.color} emissiveIntensity={2} />
+          <sphereGeometry args={[0.08, 12, 12]} />
+          <meshStandardMaterial color={node.color} emissive={node.color} emissiveIntensity={4} />
         </mesh>
       ))}
       <lineSegments>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[linePositions, 3]} />
         </bufferGeometry>
-        <lineBasicMaterial color={VIOLET} transparent opacity={0.15} />
+        <lineBasicMaterial color={BRIGHT_VIOLET} transparent opacity={0.45} />
       </lineSegments>
     </group>
   )
@@ -175,7 +177,7 @@ function DriftParticles() {
   const pointsRef = useRef<Points>(null)
 
   const positions = useMemo(() => {
-    const count = 120
+    const count = 150
     const pos = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
       pos[i * 3] = (Math.random() - 0.5) * 14
@@ -186,7 +188,7 @@ function DriftParticles() {
   }, [])
 
   useFrame((state) => {
-    if (pointsRef.current) pointsRef.current.rotation.y = state.clock.elapsedTime * 0.006
+    if (pointsRef.current) pointsRef.current.rotation.y = state.clock.elapsedTime * 0.008
   })
 
   return (
@@ -194,7 +196,7 @@ function DriftParticles() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial color={PINK} size={0.018} transparent opacity={0.25} sizeAttenuation depthWrite={false} />
+      <pointsMaterial color={BRIGHT_PINK} size={0.025} transparent opacity={0.55} sizeAttenuation depthWrite={false} />
     </points>
   )
 }
@@ -209,9 +211,10 @@ export function FeaturesScene() {
         dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.08} />
-          <pointLight position={[5, 5, 5]} intensity={0.3} color={VIOLET} />
-          <pointLight position={[-5, -3, 3]} intensity={0.15} color={PINK} />
+          <ambientLight intensity={0.3} />
+          <pointLight position={[5, 5, 5]} intensity={1} color={VIOLET} />
+          <pointLight position={[-5, -3, 3]} intensity={0.6} color={PINK} />
+          <pointLight position={[0, 3, -4]} intensity={0.3} color={INDIGO} />
 
           <BarChart3D />
           <PieChart3D />

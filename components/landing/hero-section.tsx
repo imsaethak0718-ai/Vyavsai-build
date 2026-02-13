@@ -16,7 +16,7 @@ export function HeroSection() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(270_80%_65%_/_0.1),transparent_60%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_80%_50%,hsl(320_70%_60%_/_0.06),transparent_50%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_60%_at_10%_70%,hsl(250_70%_65%_/_0.05),transparent_50%)]" />
-        <div className="absolute inset-0 bg-background" style={{ opacity: 0.82 }} />
+        <div className="absolute inset-0 bg-background" style={{ opacity: 0.55 }} />
       </div>
 
       {/* 3D Scene */}

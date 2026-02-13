@@ -24,7 +24,7 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="relative py-32 px-6 overflow-hidden">
         <CtaScene />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,hsl(270_80%_65%_/_0.06),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,hsl(270_80%_65%_/_0.1),transparent)]" />
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}

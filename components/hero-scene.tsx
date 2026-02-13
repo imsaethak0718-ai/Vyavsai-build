@@ -6,9 +6,11 @@ import { useRef, Suspense, useMemo } from "react"
 import type { Mesh, Group, Points } from "three"
 import * as THREE from "three"
 
-const VIOLET = "#a855f7"
-const PINK = "#ec4899"
-const INDIGO = "#6366f1"
+const VIOLET = "#c084fc"
+const PINK = "#f472b6"
+const INDIGO = "#818cf8"
+const BRIGHT_VIOLET = "#d8b4fe"
+const BRIGHT_PINK = "#f9a8d4"
 
 /* ── Wireframe Globe ── */
 function Globe() {
@@ -26,9 +28,9 @@ function Globe() {
           color={VIOLET}
           wireframe
           transparent
-          opacity={0.12}
+          opacity={0.35}
           emissive={VIOLET}
-          emissiveIntensity={0.4}
+          emissiveIntensity={1.2}
         />
       </Sphere>
       {/* Inner glow sphere */}
@@ -36,9 +38,9 @@ function Globe() {
         <meshStandardMaterial
           color={INDIGO}
           transparent
-          opacity={0.04}
+          opacity={0.1}
           emissive={INDIGO}
-          emissiveIntensity={0.3}
+          emissiveIntensity={0.8}
         />
       </Sphere>
     </group>
@@ -52,11 +54,11 @@ function TradeRoutes() {
   const routes = useMemo(() => {
     const arcs: { points: Float32Array; color: string }[] = []
     const routeDefs = [
-      { start: 0, end: 2.2, tilt: 0.3, lift: 0.5, color: PINK },
-      { start: 1.5, end: 3.8, tilt: -0.6, lift: 0.4, color: VIOLET },
+      { start: 0, end: 2.2, tilt: 0.3, lift: 0.5, color: BRIGHT_PINK },
+      { start: 1.5, end: 3.8, tilt: -0.6, lift: 0.4, color: BRIGHT_VIOLET },
       { start: 3, end: 5.5, tilt: 0.8, lift: 0.6, color: INDIGO },
-      { start: 4.5, end: 6.8, tilt: -0.2, lift: 0.35, color: PINK },
-      { start: 0.5, end: 3.0, tilt: 1.2, lift: 0.55, color: VIOLET },
+      { start: 4.5, end: 6.8, tilt: -0.2, lift: 0.35, color: BRIGHT_PINK },
+      { start: 0.5, end: 3.0, tilt: 1.2, lift: 0.55, color: BRIGHT_VIOLET },
     ]
     routeDefs.forEach(({ start, end, tilt, lift, color }) => {
       const segments = 40
@@ -88,7 +90,7 @@ function TradeRoutes() {
           <bufferGeometry>
             <bufferAttribute attach="attributes-position" args={[route.points, 3]} />
           </bufferGeometry>
-          <lineBasicMaterial color={route.color} transparent opacity={0.35} />
+          <lineBasicMaterial color={route.color} transparent opacity={0.7} />
         </line>
       ))}
     </group>
@@ -101,15 +103,15 @@ function CityNodes() {
 
   const cities = useMemo(
     () => [
-      { lat: 19.07, lng: 72.87, name: "Mumbai", size: 0.045 },
-      { lat: 28.61, lng: 77.23, name: "Delhi", size: 0.04 },
-      { lat: 12.97, lng: 77.59, name: "Bangalore", size: 0.038 },
-      { lat: 13.08, lng: 80.27, name: "Chennai", size: 0.035 },
-      { lat: 22.57, lng: 88.36, name: "Kolkata", size: 0.035 },
-      { lat: 23.02, lng: 72.57, name: "Ahmedabad", size: 0.032 },
-      { lat: 17.38, lng: 78.49, name: "Hyderabad", size: 0.036 },
-      { lat: 26.85, lng: 80.95, name: "Lucknow", size: 0.03 },
-    ].map((city) => {
+      { lat: 19.07, lng: 72.87, size: 0.055 },
+      { lat: 28.61, lng: 77.23, size: 0.05 },
+      { lat: 12.97, lng: 77.59, size: 0.048 },
+      { lat: 13.08, lng: 80.27, size: 0.045 },
+      { lat: 22.57, lng: 88.36, size: 0.045 },
+      { lat: 23.02, lng: 72.57, size: 0.042 },
+      { lat: 17.38, lng: 78.49, size: 0.046 },
+      { lat: 26.85, lng: 80.95, size: 0.04 },
+    ].map((city, i) => {
       const phi = ((90 - city.lat) * Math.PI) / 180
       const theta = ((city.lng + 180) * Math.PI) / 180
       const r = 1.65
@@ -120,6 +122,7 @@ function CityNodes() {
           r * Math.cos(phi),
           r * Math.sin(phi) * Math.sin(theta),
         ] as [number, number, number],
+        color: i % 2 === 0 ? BRIGHT_PINK : BRIGHT_VIOLET,
       }
     }),
     []
@@ -137,9 +140,9 @@ function CityNodes() {
         <Float key={i} speed={2} floatIntensity={0.05}>
           <Sphere args={[city.size, 12, 12]} position={city.position}>
             <meshStandardMaterial
-              color={i % 2 === 0 ? PINK : VIOLET}
-              emissive={i % 2 === 0 ? PINK : VIOLET}
-              emissiveIntensity={2.5}
+              color={city.color}
+              emissive={city.color}
+              emissiveIntensity={4}
             />
           </Sphere>
         </Float>
@@ -148,19 +151,19 @@ function CityNodes() {
   )
 }
 
-/* ── Orbiting currency symbols / data packets ── */
+/* ── Orbiting data packets ── */
 function OrbitingPackets() {
   const groupRef = useRef<Group>(null)
 
   const packets = useMemo(
     () =>
-      Array.from({ length: 8 }, (_, i) => ({
-        radius: 2.5 + i * 0.25,
+      Array.from({ length: 10 }, (_, i) => ({
+        radius: 2.3 + i * 0.2,
         speed: 0.2 + i * 0.08,
-        offset: (i * Math.PI * 2) / 8,
-        size: 0.03 + (i % 3) * 0.01,
+        offset: (i * Math.PI * 2) / 10,
+        size: 0.04 + (i % 3) * 0.015,
         tiltY: Math.sin(i * 1.2) * 0.5,
-        color: [PINK, VIOLET, INDIGO][i % 3],
+        color: [BRIGHT_PINK, BRIGHT_VIOLET, INDIGO][i % 3],
       })),
     []
   )
@@ -186,7 +189,7 @@ function OrbitingPackets() {
           <meshStandardMaterial
             color={p.color}
             emissive={p.color}
-            emissiveIntensity={2.5}
+            emissiveIntensity={4}
           />
         </mesh>
       ))}
@@ -207,13 +210,13 @@ function LatitudeRings() {
       {[-0.6, -0.2, 0.2, 0.6].map((y, i) => {
         const r = Math.sqrt(1.62 * 1.62 - y * y) * (i % 2 === 0 ? 1 : 0.98)
         return (
-          <Torus key={i} args={[r, 0.003, 8, 80]} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <Torus key={i} args={[r, 0.004, 8, 80]} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
             <meshStandardMaterial
               color={VIOLET}
               transparent
-              opacity={0.08}
+              opacity={0.25}
               emissive={VIOLET}
-              emissiveIntensity={0.4}
+              emissiveIntensity={1}
             />
           </Torus>
         )
@@ -227,12 +230,12 @@ function StarField() {
   const pointsRef = useRef<Points>(null)
 
   const positions = useMemo(() => {
-    const count = 300
+    const count = 400
     const pos = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
       const theta = Math.random() * Math.PI * 2
       const phi = Math.acos(2 * Math.random() - 1)
-      const r = 4 + Math.random() * 5
+      const r = 3.5 + Math.random() * 5
       pos[i * 3] = r * Math.sin(phi) * Math.cos(theta)
       pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
       pos[i * 3 + 2] = r * Math.cos(phi)
@@ -241,7 +244,7 @@ function StarField() {
   }, [])
 
   useFrame((state) => {
-    if (pointsRef.current) pointsRef.current.rotation.y = state.clock.elapsedTime * 0.01
+    if (pointsRef.current) pointsRef.current.rotation.y = state.clock.elapsedTime * 0.012
   })
 
   return (
@@ -249,7 +252,7 @@ function StarField() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial color="#c4b5fd" size={0.015} transparent opacity={0.4} sizeAttenuation depthWrite={false} />
+      <pointsMaterial color={BRIGHT_VIOLET} size={0.025} transparent opacity={0.7} sizeAttenuation depthWrite={false} />
     </points>
   )
 }
@@ -274,15 +277,15 @@ function FloatingLabels() {
   return (
     <>
       <group ref={g1} position={[-2.5, 2.2, 0]}>
-        <Text fontSize={0.18} color={VIOLET} anchorX="center" anchorY="middle" font="/fonts/Geist-Bold.ttf">
+        <Text fontSize={0.2} color={BRIGHT_VIOLET} anchorX="center" anchorY="middle" font="/fonts/Geist-Bold.ttf">
           AI-Powered
-          <meshStandardMaterial color={VIOLET} emissive={VIOLET} emissiveIntensity={0.8} transparent opacity={0.5} />
+          <meshStandardMaterial color={BRIGHT_VIOLET} emissive={BRIGHT_VIOLET} emissiveIntensity={2} transparent opacity={0.8} />
         </Text>
       </group>
       <group ref={g2} position={[2.3, -2, 0]}>
-        <Text fontSize={0.16} color={PINK} anchorX="center" anchorY="middle" font="/fonts/Geist-Bold.ttf">
+        <Text fontSize={0.18} color={BRIGHT_PINK} anchorX="center" anchorY="middle" font="/fonts/Geist-Bold.ttf">
           Blockchain Verified
-          <meshStandardMaterial color={PINK} emissive={PINK} emissiveIntensity={0.8} transparent opacity={0.4} />
+          <meshStandardMaterial color={BRIGHT_PINK} emissive={BRIGHT_PINK} emissiveIntensity={2} transparent opacity={0.7} />
         </Text>
       </group>
     </>
@@ -299,10 +302,11 @@ export function HeroScene() {
         dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.1} />
-          <pointLight position={[5, 5, 5]} intensity={0.7} color={VIOLET} />
-          <pointLight position={[-5, -3, 3]} intensity={0.35} color={PINK} />
-          <pointLight position={[0, 4, -5]} intensity={0.2} color="#ffffff" />
+          <ambientLight intensity={0.4} />
+          <pointLight position={[5, 5, 5]} intensity={1.5} color={VIOLET} />
+          <pointLight position={[-5, -3, 3]} intensity={0.8} color={PINK} />
+          <pointLight position={[0, 4, -5]} intensity={0.5} color="#ffffff" />
+          <pointLight position={[0, -4, 4]} intensity={0.4} color={INDIGO} />
 
           <Globe />
           <TradeRoutes />

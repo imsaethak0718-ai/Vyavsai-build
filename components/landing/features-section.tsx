@@ -61,7 +61,7 @@ export function FeaturesSection() {
   return (
     <section className="relative py-32 px-6">
       <FeaturesScene />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_30%_at_50%_50%,hsl(270_80%_65%_/_0.04),transparent)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_30%_at_50%_50%,hsl(270_80%_65%_/_0.08),transparent)]" />
 
       <div className="relative mx-auto max-w-6xl">
         <motion.div

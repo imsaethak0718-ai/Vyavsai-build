@@ -5,9 +5,11 @@ import { useRef, Suspense, useMemo } from "react"
 import type { Points, Group, Mesh } from "three"
 import * as THREE from "three"
 
-const VIOLET = "#a855f7"
-const PINK = "#ec4899"
-const INDIGO = "#6366f1"
+const VIOLET = "#c084fc"
+const PINK = "#f472b6"
+const INDIGO = "#818cf8"
+const BRIGHT_VIOLET = "#d8b4fe"
+const BRIGHT_PINK = "#f9a8d4"
 
 /* ── Pipeline conveyor belt with moving packages ── */
 function ConveyorBelt() {
@@ -41,28 +43,28 @@ function ConveyorBelt() {
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[beltSegments, 3]} />
         </bufferGeometry>
-        <lineBasicMaterial color={VIOLET} transparent opacity={0.12} />
+        <lineBasicMaterial color={BRIGHT_VIOLET} transparent opacity={0.35} />
       </lineSegments>
       {/* Rails */}
       <mesh position={[0, -0.5, -0.15]}>
-        <boxGeometry args={[12, 0.01, 0.01]} />
-        <meshStandardMaterial color={VIOLET} transparent opacity={0.15} emissive={VIOLET} emissiveIntensity={0.3} />
+        <boxGeometry args={[12, 0.015, 0.015]} />
+        <meshStandardMaterial color={VIOLET} transparent opacity={0.45} emissive={VIOLET} emissiveIntensity={1} />
       </mesh>
       <mesh position={[0, -0.5, 0.15]}>
-        <boxGeometry args={[12, 0.01, 0.01]} />
-        <meshStandardMaterial color={VIOLET} transparent opacity={0.15} emissive={VIOLET} emissiveIntensity={0.3} />
+        <boxGeometry args={[12, 0.015, 0.015]} />
+        <meshStandardMaterial color={VIOLET} transparent opacity={0.45} emissive={VIOLET} emissiveIntensity={1} />
       </mesh>
       {/* Moving packages */}
       <group ref={packagesRef}>
         {Array.from({ length: 5 }, (_, i) => (
           <mesh key={i} position={[-4 + i * 2.5, -0.3, 0]}>
-            <boxGeometry args={[0.2, 0.2, 0.2]} />
+            <boxGeometry args={[0.22, 0.22, 0.22]} />
             <meshStandardMaterial
-              color={[PINK, VIOLET, INDIGO, PINK, VIOLET][i]}
-              emissive={[PINK, VIOLET, INDIGO, PINK, VIOLET][i]}
-              emissiveIntensity={1.2}
+              color={[BRIGHT_PINK, BRIGHT_VIOLET, INDIGO, BRIGHT_PINK, BRIGHT_VIOLET][i]}
+              emissive={[BRIGHT_PINK, BRIGHT_VIOLET, INDIGO, BRIGHT_PINK, BRIGHT_VIOLET][i]}
+              emissiveIntensity={3}
               transparent
-              opacity={0.5}
+              opacity={0.8}
             />
           </mesh>
         ))}
@@ -77,10 +79,10 @@ function ProcessingNodes() {
 
   const nodes = useMemo(
     () => [
-      { x: -4, y: 0, label: "Input", size: 0.2, color: PINK },
-      { x: -1.5, y: 0.3, label: "Process", size: 0.25, color: VIOLET },
-      { x: 1.5, y: -0.2, label: "Validate", size: 0.22, color: INDIGO },
-      { x: 4, y: 0.1, label: "Output", size: 0.2, color: PINK },
+      { x: -4, y: 0, size: 0.22, color: BRIGHT_PINK },
+      { x: -1.5, y: 0.3, size: 0.28, color: BRIGHT_VIOLET },
+      { x: 1.5, y: -0.2, size: 0.25, color: INDIGO },
+      { x: 4, y: 0.1, size: 0.22, color: BRIGHT_PINK },
     ],
     []
   )
@@ -104,7 +106,7 @@ function ProcessingNodes() {
     groupRef.current.children.forEach((child, i) => {
       if (i < nodes.length) {
         const mesh = child as Mesh
-        const pulse = 1 + Math.sin(t * 1.5 + i * 1.2) * 0.12
+        const pulse = 1 + Math.sin(t * 1.5 + i * 1.2) * 0.15
         mesh.scale.setScalar(pulse)
       }
     })
@@ -118,9 +120,9 @@ function ProcessingNodes() {
           <meshStandardMaterial
             color={node.color}
             transparent
-            opacity={0.2}
+            opacity={0.5}
             emissive={node.color}
-            emissiveIntensity={0.8}
+            emissiveIntensity={2}
             wireframe
           />
         </mesh>
@@ -129,7 +131,7 @@ function ProcessingNodes() {
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[connectionLines, 3]} />
         </bufferGeometry>
-        <lineBasicMaterial color={VIOLET} transparent opacity={0.15} />
+        <lineBasicMaterial color={BRIGHT_VIOLET} transparent opacity={0.45} />
       </lineSegments>
     </group>
   )
@@ -144,13 +146,13 @@ function ScanBeam() {
     const t = state.clock.elapsedTime
     meshRef.current.position.x = Math.sin(t * 0.3) * 5
     const mat = meshRef.current.material as THREE.MeshStandardMaterial
-    mat.opacity = 0.03 + Math.sin(t * 0.6) * 0.02
+    mat.opacity = 0.08 + Math.sin(t * 0.6) * 0.05
   })
 
   return (
     <mesh ref={meshRef} position={[0, 0, -2]}>
-      <planeGeometry args={[0.05, 6]} />
-      <meshStandardMaterial color={PINK} transparent opacity={0.04} emissive={PINK} emissiveIntensity={1} side={THREE.DoubleSide} />
+      <planeGeometry args={[0.06, 6]} />
+      <meshStandardMaterial color={BRIGHT_PINK} transparent opacity={0.1} emissive={BRIGHT_PINK} emissiveIntensity={3} side={THREE.DoubleSide} />
     </mesh>
   )
 }
@@ -160,7 +162,7 @@ function AmbientDust() {
   const pointsRef = useRef<Points>(null)
 
   const positions = useMemo(() => {
-    const count = 80
+    const count = 120
     const pos = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
       pos[i * 3] = (Math.random() - 0.5) * 14
@@ -171,7 +173,7 @@ function AmbientDust() {
   }, [])
 
   useFrame((state) => {
-    if (pointsRef.current) pointsRef.current.rotation.y = state.clock.elapsedTime * 0.004
+    if (pointsRef.current) pointsRef.current.rotation.y = state.clock.elapsedTime * 0.006
   })
 
   return (
@@ -179,7 +181,7 @@ function AmbientDust() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial color={VIOLET} size={0.012} transparent opacity={0.2} sizeAttenuation depthWrite={false} />
+      <pointsMaterial color={BRIGHT_VIOLET} size={0.02} transparent opacity={0.5} sizeAttenuation depthWrite={false} />
     </points>
   )
 }
@@ -194,9 +196,10 @@ export function ProcessScene() {
         dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.06} />
-          <pointLight position={[5, 3, 4]} intensity={0.3} color={VIOLET} />
-          <pointLight position={[-4, -2, 3]} intensity={0.15} color={PINK} />
+          <ambientLight intensity={0.3} />
+          <pointLight position={[5, 3, 4]} intensity={1} color={VIOLET} />
+          <pointLight position={[-4, -2, 3]} intensity={0.6} color={PINK} />
+          <pointLight position={[0, 3, -3]} intensity={0.3} color={INDIGO} />
 
           <ConveyorBelt />
           <ProcessingNodes />
