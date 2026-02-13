@@ -1,7 +1,6 @@
 "use client"
 
 import { Canvas, useFrame } from "@react-three/fiber"
-import { Float, Text } from "@react-three/drei"
 import { useRef, Suspense, useMemo } from "react"
 import type { Points, Group, Mesh } from "three"
 import * as THREE from "three"
@@ -49,9 +48,9 @@ function GrowthChart() {
           <meshStandardMaterial
             color={bar.color}
             transparent
-            opacity={0.6}
+            opacity={0.7}
             emissive={bar.color}
-            emissiveIntensity={1.5}
+            emissiveIntensity={2}
           />
         </mesh>
       ))}
@@ -96,9 +95,9 @@ function TokenRing() {
           <meshStandardMaterial
             color={token.color}
             emissive={token.color}
-            emissiveIntensity={3}
+            emissiveIntensity={4}
             transparent
-            opacity={0.8}
+            opacity={0.85}
           />
         </mesh>
       ))}
@@ -133,49 +132,13 @@ function TrendArrow() {
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[arrowLine, 3]} />
         </bufferGeometry>
-        <lineBasicMaterial color={BRIGHT_PINK} transparent opacity={0.65} />
+        <lineBasicMaterial color={BRIGHT_PINK} transparent opacity={0.75} />
       </line>
-      {/* Arrowhead */}
       <mesh position={[5, 1.5, -1]} rotation={[0, 0, 0.9]}>
         <coneGeometry args={[0.08, 0.24, 8]} />
-        <meshStandardMaterial color={BRIGHT_PINK} emissive={BRIGHT_PINK} emissiveIntensity={3} transparent opacity={0.8} />
+        <meshStandardMaterial color={BRIGHT_PINK} emissive={BRIGHT_PINK} emissiveIntensity={4} transparent opacity={0.9} />
       </mesh>
     </group>
-  )
-}
-
-/* ── Floating metric badges ── */
-function MetricBadges() {
-  const g1 = useRef<Group>(null)
-  const g2 = useRef<Group>(null)
-
-  useFrame((state) => {
-    const t = state.clock.elapsedTime
-    if (g1.current) {
-      g1.current.position.y = 1.8 + Math.sin(t * 0.4) * 0.12
-      g1.current.position.x = -3 + Math.sin(t * 0.25) * 0.08
-    }
-    if (g2.current) {
-      g2.current.position.y = -1.5 + Math.sin(t * 0.35 + 1) * 0.12
-      g2.current.position.x = 3.5 + Math.cos(t * 0.28) * 0.08
-    }
-  })
-
-  return (
-    <>
-      <group ref={g1} position={[-3, 1.8, 0]}>
-        <Text fontSize={0.22} color={BRIGHT_VIOLET} anchorX="center" anchorY="middle" font="/fonts/Geist-Bold.ttf">
-          +340M
-          <meshStandardMaterial color={BRIGHT_VIOLET} emissive={BRIGHT_VIOLET} emissiveIntensity={2} transparent opacity={0.8} />
-        </Text>
-      </group>
-      <group ref={g2} position={[3.5, -1.5, 0]}>
-        <Text fontSize={0.2} color={BRIGHT_PINK} anchorX="center" anchorY="middle" font="/fonts/Geist-Bold.ttf">
-          98% Accuracy
-          <meshStandardMaterial color={BRIGHT_PINK} emissive={BRIGHT_PINK} emissiveIntensity={2} transparent opacity={0.7} />
-        </Text>
-      </group>
-    </>
   )
 }
 
@@ -184,7 +147,7 @@ function SpiralParticles() {
   const pointsRef = useRef<Points>(null)
 
   const positions = useMemo(() => {
-    const count = 200
+    const count = 250
     const pos = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
       const t = (i / count) * Math.PI * 6
@@ -205,7 +168,7 @@ function SpiralParticles() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial color={BRIGHT_VIOLET} size={0.025} transparent opacity={0.6} sizeAttenuation depthWrite={false} />
+      <pointsMaterial color={BRIGHT_VIOLET} size={0.03} transparent opacity={0.7} sizeAttenuation depthWrite={false} />
     </points>
   )
 }
@@ -220,15 +183,14 @@ export function CtaScene() {
         dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.3} />
-          <pointLight position={[4, 4, 4]} intensity={1.2} color={VIOLET} />
-          <pointLight position={[-4, -2, 2]} intensity={0.6} color={PINK} />
-          <pointLight position={[0, 3, -3]} intensity={0.3} color={INDIGO} />
+          <ambientLight intensity={0.4} />
+          <pointLight position={[4, 4, 4]} intensity={1.5} color={VIOLET} />
+          <pointLight position={[-4, -2, 2]} intensity={0.8} color={PINK} />
+          <pointLight position={[0, 3, -3]} intensity={0.5} color={INDIGO} />
 
           <GrowthChart />
           <TokenRing />
           <TrendArrow />
-          <MetricBadges />
           <SpiralParticles />
         </Suspense>
       </Canvas>

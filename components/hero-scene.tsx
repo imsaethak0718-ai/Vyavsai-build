@@ -1,169 +1,160 @@
 "use client"
 
-import { Canvas, useFrame } from "@react-three/fiber"
-import { Float, Sphere, Torus, Text } from "@react-three/drei"
+import { Canvas, useFrame, extend } from "@react-three/fiber"
 import { useRef, Suspense, useMemo } from "react"
-import type { Mesh, Group, Points } from "three"
+import type { Mesh, Group, Points, ShaderMaterial } from "three"
 import * as THREE from "three"
 
-const VIOLET = "#c084fc"
-const PINK = "#f472b6"
-const INDIGO = "#818cf8"
-const BRIGHT_VIOLET = "#d8b4fe"
-const BRIGHT_PINK = "#f9a8d4"
+/* ── Gradient Sphere with custom shader ── */
+const gradientVertexShader = `
+  varying vec3 vNormal;
+  varying vec3 vPosition;
+  varying vec2 vUv;
+  uniform float uTime;
+  void main() {
+    vNormal = normalize(normalMatrix * normal);
+    vPosition = position;
+    vUv = uv;
+    // Subtle vertex displacement for organic feel
+    vec3 pos = position;
+    float displacement = sin(pos.x * 3.0 + uTime) * sin(pos.y * 3.0 + uTime * 0.7) * sin(pos.z * 3.0 + uTime * 0.5) * 0.06;
+    pos += normal * displacement;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  }
+`
 
-/* ── Wireframe Globe ── */
-function Globe() {
+const gradientFragmentShader = `
+  varying vec3 vNormal;
+  varying vec3 vPosition;
+  varying vec2 vUv;
+  uniform float uTime;
+  void main() {
+    // Vibrant violet-to-pink-to-indigo gradient based on normals + position
+    vec3 violet = vec3(0.75, 0.52, 0.99);   // #bf84fd
+    vec3 pink = vec3(0.96, 0.47, 0.73);     // #f578ba
+    vec3 indigo = vec3(0.51, 0.40, 0.98);   // #8266fa
+    vec3 cyan = vec3(0.40, 0.84, 0.98);     // #66d6fa
+
+    float t1 = vNormal.y * 0.5 + 0.5;
+    float t2 = sin(vPosition.x * 2.0 + uTime * 0.5) * 0.5 + 0.5;
+    float t3 = cos(vPosition.z * 2.0 + uTime * 0.3) * 0.5 + 0.5;
+
+    vec3 color = mix(violet, pink, t1);
+    color = mix(color, indigo, t2 * 0.5);
+    color = mix(color, cyan, t3 * 0.25);
+
+    // Fresnel glow at edges
+    float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0))), 2.5);
+    color += vec3(0.6, 0.3, 0.9) * fresnel * 0.8;
+
+    // Pulsing brightness
+    float pulse = 0.85 + sin(uTime * 0.8) * 0.15;
+    color *= pulse;
+
+    gl_FragColor = vec4(color, 0.92);
+  }
+`
+
+function GradientSphere() {
+  const meshRef = useRef<Mesh>(null)
+  const matRef = useRef<ShaderMaterial>(null)
+
+  useFrame((state) => {
+    if (!meshRef.current || !matRef.current) return
+    meshRef.current.rotation.y = state.clock.elapsedTime * 0.12
+    meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.08) * 0.1
+    matRef.current.uniforms.uTime.value = state.clock.elapsedTime
+  })
+
+  return (
+    <mesh ref={meshRef}>
+      <sphereGeometry args={[1.5, 64, 64]} />
+      <shaderMaterial
+        ref={matRef}
+        vertexShader={gradientVertexShader}
+        fragmentShader={gradientFragmentShader}
+        uniforms={{ uTime: { value: 0 } }}
+        transparent
+      />
+    </mesh>
+  )
+}
+
+/* ── Inner glow core ── */
+function InnerCore() {
   const meshRef = useRef<Mesh>(null)
 
   useFrame((state) => {
     if (!meshRef.current) return
-    meshRef.current.rotation.y = state.clock.elapsedTime * 0.08
+    const s = 1 + Math.sin(state.clock.elapsedTime * 1.2) * 0.08
+    meshRef.current.scale.setScalar(s)
   })
 
+  return (
+    <mesh ref={meshRef}>
+      <sphereGeometry args={[0.6, 32, 32]} />
+      <meshStandardMaterial
+        color="#e879f9"
+        emissive="#e879f9"
+        emissiveIntensity={4}
+        transparent
+        opacity={0.35}
+      />
+    </mesh>
+  )
+}
+
+/* ── Orbital rings ── */
+function OrbitalRing({ radius, tiltX, tiltZ, speed, color, thickness }: {
+  radius: number; tiltX: number; tiltZ: number; speed: number; color: string; thickness: number
+}) {
+  const meshRef = useRef<Mesh>(null)
+
+  useFrame((state) => {
+    if (!meshRef.current) return
+    meshRef.current.rotation.z = state.clock.elapsedTime * speed
+  })
+
+  return (
+    <mesh ref={meshRef} rotation={[tiltX, 0, tiltZ]}>
+      <torusGeometry args={[radius, thickness, 16, 120]} />
+      <meshStandardMaterial
+        color={color}
+        emissive={color}
+        emissiveIntensity={2.5}
+        transparent
+        opacity={0.7}
+      />
+    </mesh>
+  )
+}
+
+function Orbits() {
   return (
     <group>
-      <Sphere ref={meshRef} args={[1.6, 32, 32]}>
-        <meshStandardMaterial
-          color={VIOLET}
-          wireframe
-          transparent
-          opacity={0.35}
-          emissive={VIOLET}
-          emissiveIntensity={1.2}
-        />
-      </Sphere>
-      {/* Inner glow sphere */}
-      <Sphere args={[1.55, 24, 24]}>
-        <meshStandardMaterial
-          color={INDIGO}
-          transparent
-          opacity={0.1}
-          emissive={INDIGO}
-          emissiveIntensity={0.8}
-        />
-      </Sphere>
+      <OrbitalRing radius={2.2} tiltX={1.2} tiltZ={0.3} speed={0.18} color="#c084fc" thickness={0.012} />
+      <OrbitalRing radius={2.6} tiltX={0.5} tiltZ={-0.8} speed={-0.12} color="#f472b6" thickness={0.01} />
+      <OrbitalRing radius={3.0} tiltX={-0.3} tiltZ={1.5} speed={0.08} color="#818cf8" thickness={0.008} />
+      <OrbitalRing radius={3.4} tiltX={0.9} tiltZ={-0.4} speed={-0.15} color="#e879f9" thickness={0.009} />
+      <OrbitalRing radius={1.9} tiltX={-0.8} tiltZ={0.6} speed={0.22} color="#f9a8d4" thickness={0.011} />
     </group>
   )
 }
 
-/* ── Trade route arcs around globe ── */
-function TradeRoutes() {
+/* ── Orbiting particles along rings ── */
+function OrbitParticles() {
   const groupRef = useRef<Group>(null)
 
-  const routes = useMemo(() => {
-    const arcs: { points: Float32Array; color: string }[] = []
-    const routeDefs = [
-      { start: 0, end: 2.2, tilt: 0.3, lift: 0.5, color: BRIGHT_PINK },
-      { start: 1.5, end: 3.8, tilt: -0.6, lift: 0.4, color: BRIGHT_VIOLET },
-      { start: 3, end: 5.5, tilt: 0.8, lift: 0.6, color: INDIGO },
-      { start: 4.5, end: 6.8, tilt: -0.2, lift: 0.35, color: BRIGHT_PINK },
-      { start: 0.5, end: 3.0, tilt: 1.2, lift: 0.55, color: BRIGHT_VIOLET },
-    ]
-    routeDefs.forEach(({ start, end, tilt, lift, color }) => {
-      const segments = 40
-      const verts = new Float32Array(segments * 3)
-      for (let i = 0; i < segments; i++) {
-        const t = start + (i / (segments - 1)) * (end - start)
-        const progress = i / (segments - 1)
-        const arcHeight = Math.sin(progress * Math.PI) * lift
-        const r = 1.7 + arcHeight
-        verts[i * 3] = Math.cos(t) * r
-        verts[i * 3 + 1] = Math.sin(t * 0.6 + tilt) * r * 0.4
-        verts[i * 3 + 2] = Math.sin(t) * r
-      }
-      arcs.push({ points: verts, color })
-    })
-    return arcs
-  }, [])
-
-  useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.08
-    }
-  })
-
-  return (
-    <group ref={groupRef}>
-      {routes.map((route, i) => (
-        <line key={i}>
-          <bufferGeometry>
-            <bufferAttribute attach="attributes-position" args={[route.points, 3]} />
-          </bufferGeometry>
-          <lineBasicMaterial color={route.color} transparent opacity={0.7} />
-        </line>
-      ))}
-    </group>
-  )
-}
-
-/* ── City nodes on globe surface ── */
-function CityNodes() {
-  const groupRef = useRef<Group>(null)
-
-  const cities = useMemo(
-    () => [
-      { lat: 19.07, lng: 72.87, size: 0.055 },
-      { lat: 28.61, lng: 77.23, size: 0.05 },
-      { lat: 12.97, lng: 77.59, size: 0.048 },
-      { lat: 13.08, lng: 80.27, size: 0.045 },
-      { lat: 22.57, lng: 88.36, size: 0.045 },
-      { lat: 23.02, lng: 72.57, size: 0.042 },
-      { lat: 17.38, lng: 78.49, size: 0.046 },
-      { lat: 26.85, lng: 80.95, size: 0.04 },
-    ].map((city, i) => {
-      const phi = ((90 - city.lat) * Math.PI) / 180
-      const theta = ((city.lng + 180) * Math.PI) / 180
-      const r = 1.65
-      return {
-        ...city,
-        position: [
-          -r * Math.sin(phi) * Math.cos(theta),
-          r * Math.cos(phi),
-          r * Math.sin(phi) * Math.sin(theta),
-        ] as [number, number, number],
-        color: i % 2 === 0 ? BRIGHT_PINK : BRIGHT_VIOLET,
-      }
-    }),
-    []
-  )
-
-  useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.08
-    }
-  })
-
-  return (
-    <group ref={groupRef}>
-      {cities.map((city, i) => (
-        <Float key={i} speed={2} floatIntensity={0.05}>
-          <Sphere args={[city.size, 12, 12]} position={city.position}>
-            <meshStandardMaterial
-              color={city.color}
-              emissive={city.color}
-              emissiveIntensity={4}
-            />
-          </Sphere>
-        </Float>
-      ))}
-    </group>
-  )
-}
-
-/* ── Orbiting data packets ── */
-function OrbitingPackets() {
-  const groupRef = useRef<Group>(null)
-
-  const packets = useMemo(
+  const particles = useMemo(
     () =>
-      Array.from({ length: 10 }, (_, i) => ({
-        radius: 2.3 + i * 0.2,
-        speed: 0.2 + i * 0.08,
-        offset: (i * Math.PI * 2) / 10,
-        size: 0.04 + (i % 3) * 0.015,
-        tiltY: Math.sin(i * 1.2) * 0.5,
-        color: [BRIGHT_PINK, BRIGHT_VIOLET, INDIGO][i % 3],
+      Array.from({ length: 20 }, (_, i) => ({
+        radius: 2.0 + (i % 5) * 0.4,
+        speed: 0.15 + (i % 3) * 0.1,
+        offset: (i / 20) * Math.PI * 2,
+        tiltX: [1.2, 0.5, -0.3, 0.9, -0.8][i % 5],
+        tiltZ: [0.3, -0.8, 1.5, -0.4, 0.6][i % 5],
+        size: 0.035 + (i % 4) * 0.012,
+        color: ["#c084fc", "#f472b6", "#818cf8", "#e879f9", "#f9a8d4"][i % 5],
       })),
     []
   )
@@ -172,24 +163,26 @@ function OrbitingPackets() {
     if (!groupRef.current) return
     const t = state.clock.elapsedTime
     groupRef.current.children.forEach((child, i) => {
-      const p = packets[i]
+      const p = particles[i]
       if (!p) return
-      const angle = t * p.speed + p.offset
-      child.position.x = Math.cos(angle) * p.radius
-      child.position.y = Math.sin(angle + p.tiltY) * p.radius * 0.25
-      child.position.z = Math.sin(angle) * p.radius
+      const angle = t * p.speed * (i % 2 === 0 ? 1 : -1) + p.offset
+      // Rotate the point by tilt angles
+      const x = Math.cos(angle) * p.radius
+      const y = Math.sin(angle) * p.radius * Math.sin(p.tiltX)
+      const z = Math.sin(angle) * p.radius * Math.cos(p.tiltX)
+      child.position.set(x, y, z)
     })
   })
 
   return (
     <group ref={groupRef}>
-      {packets.map((p, i) => (
+      {particles.map((p, i) => (
         <mesh key={i}>
-          <boxGeometry args={[p.size * 2, p.size * 2, p.size * 2]} />
+          <sphereGeometry args={[p.size, 10, 10]} />
           <meshStandardMaterial
             color={p.color}
             emissive={p.color}
-            emissiveIntensity={4}
+            emissiveIntensity={5}
           />
         </mesh>
       ))}
@@ -197,45 +190,17 @@ function OrbitingPackets() {
   )
 }
 
-/* ── Latitude rings ── */
-function LatitudeRings() {
-  const groupRef = useRef<Group>(null)
-
-  useFrame((state) => {
-    if (groupRef.current) groupRef.current.rotation.y = state.clock.elapsedTime * 0.08
-  })
-
-  return (
-    <group ref={groupRef}>
-      {[-0.6, -0.2, 0.2, 0.6].map((y, i) => {
-        const r = Math.sqrt(1.62 * 1.62 - y * y) * (i % 2 === 0 ? 1 : 0.98)
-        return (
-          <Torus key={i} args={[r, 0.004, 8, 80]} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <meshStandardMaterial
-              color={VIOLET}
-              transparent
-              opacity={0.25}
-              emissive={VIOLET}
-              emissiveIntensity={1}
-            />
-          </Torus>
-        )
-      })}
-    </group>
-  )
-}
-
-/* ── Ambient star particles ── */
+/* ── Star field background ── */
 function StarField() {
   const pointsRef = useRef<Points>(null)
 
   const positions = useMemo(() => {
-    const count = 400
+    const count = 500
     const pos = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
       const theta = Math.random() * Math.PI * 2
       const phi = Math.acos(2 * Math.random() - 1)
-      const r = 3.5 + Math.random() * 5
+      const r = 4 + Math.random() * 6
       pos[i * 3] = r * Math.sin(phi) * Math.cos(theta)
       pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
       pos[i * 3 + 2] = r * Math.cos(phi)
@@ -244,7 +209,7 @@ function StarField() {
   }, [])
 
   useFrame((state) => {
-    if (pointsRef.current) pointsRef.current.rotation.y = state.clock.elapsedTime * 0.012
+    if (pointsRef.current) pointsRef.current.rotation.y = state.clock.elapsedTime * 0.015
   })
 
   return (
@@ -252,43 +217,46 @@ function StarField() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial color={BRIGHT_VIOLET} size={0.025} transparent opacity={0.7} sizeAttenuation depthWrite={false} />
+      <pointsMaterial color="#d8b4fe" size={0.03} transparent opacity={0.8} sizeAttenuation depthWrite={false} />
     </points>
   )
 }
 
-/* ── Floating "AI" / "Blockchain" labels ── */
-function FloatingLabels() {
-  const g1 = useRef<Group>(null)
-  const g2 = useRef<Group>(null)
+/* ── Energy pulses radiating from sphere ── */
+function EnergyPulses() {
+  const rings = useRef<(Mesh | null)[]>([])
 
   useFrame((state) => {
     const t = state.clock.elapsedTime
-    if (g1.current) {
-      g1.current.position.y = 2.2 + Math.sin(t * 0.5) * 0.15
-      g1.current.position.x = -2.5 + Math.sin(t * 0.3) * 0.1
-    }
-    if (g2.current) {
-      g2.current.position.y = -2 + Math.sin(t * 0.4 + 1) * 0.15
-      g2.current.position.x = 2.3 + Math.cos(t * 0.35) * 0.1
-    }
+    rings.current.forEach((ring, i) => {
+      if (!ring) return
+      const phase = (t * 0.4 + i * 1.2) % 3
+      const scale = 1.5 + phase * 1.2
+      ring.scale.setScalar(scale)
+      const mat = ring.material as THREE.MeshStandardMaterial
+      mat.opacity = Math.max(0, 0.5 - phase * 0.17)
+    })
   })
 
   return (
-    <>
-      <group ref={g1} position={[-2.5, 2.2, 0]}>
-        <Text fontSize={0.2} color={BRIGHT_VIOLET} anchorX="center" anchorY="middle" font="/fonts/Geist-Bold.ttf">
-          AI-Powered
-          <meshStandardMaterial color={BRIGHT_VIOLET} emissive={BRIGHT_VIOLET} emissiveIntensity={2} transparent opacity={0.8} />
-        </Text>
-      </group>
-      <group ref={g2} position={[2.3, -2, 0]}>
-        <Text fontSize={0.18} color={BRIGHT_PINK} anchorX="center" anchorY="middle" font="/fonts/Geist-Bold.ttf">
-          Blockchain Verified
-          <meshStandardMaterial color={BRIGHT_PINK} emissive={BRIGHT_PINK} emissiveIntensity={2} transparent opacity={0.7} />
-        </Text>
-      </group>
-    </>
+    <group>
+      {[0, 1, 2].map((i) => (
+        <mesh
+          key={i}
+          ref={(el) => { rings.current[i] = el }}
+          rotation={[Math.PI / 2, 0, 0]}
+        >
+          <torusGeometry args={[1, 0.008, 8, 80]} />
+          <meshStandardMaterial
+            color="#e879f9"
+            emissive="#e879f9"
+            emissiveIntensity={3}
+            transparent
+            opacity={0.5}
+          />
+        </mesh>
+      ))}
+    </group>
   )
 }
 
@@ -296,24 +264,24 @@ export function HeroScene() {
   return (
     <div className="absolute inset-0 z-0">
       <Canvas
-        camera={{ position: [0, 0, 6.5], fov: 40 }}
+        camera={{ position: [0, 0, 7], fov: 40 }}
         gl={{ antialias: true, alpha: true }}
         style={{ background: "transparent" }}
         dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.4} />
-          <pointLight position={[5, 5, 5]} intensity={1.5} color={VIOLET} />
-          <pointLight position={[-5, -3, 3]} intensity={0.8} color={PINK} />
-          <pointLight position={[0, 4, -5]} intensity={0.5} color="#ffffff" />
-          <pointLight position={[0, -4, 4]} intensity={0.4} color={INDIGO} />
+          <ambientLight intensity={0.5} />
+          <pointLight position={[5, 5, 5]} intensity={2} color="#c084fc" />
+          <pointLight position={[-5, -3, 3]} intensity={1.2} color="#f472b6" />
+          <pointLight position={[0, 4, -5]} intensity={0.8} color="#ffffff" />
+          <pointLight position={[0, -4, 4]} intensity={0.6} color="#818cf8" />
+          <pointLight position={[3, 0, 3]} intensity={0.8} color="#e879f9" />
 
-          <Globe />
-          <TradeRoutes />
-          <CityNodes />
-          <LatitudeRings />
-          <OrbitingPackets />
-          <FloatingLabels />
+          <GradientSphere />
+          <InnerCore />
+          <Orbits />
+          <OrbitParticles />
+          <EnergyPulses />
           <StarField />
         </Suspense>
       </Canvas>
